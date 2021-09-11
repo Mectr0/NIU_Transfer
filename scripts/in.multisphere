@@ -39,19 +39,19 @@ fix			removable_wall all wall/gran model hooke tangential history primitive type
 fix 		boxwalls_x2 all wall/gran model hooke tangential history primitive type 1 xplane -0.5 #-0.91
 
 #input cad files -- reference belt is 2.032 m long
-fix			belt1 all mesh/surface file meshes/conveyor1in3.stl type 1 move -1 0 0
-fix			belt2 all mesh/surface file meshes/conveyor1in3.stl type 1 move -3.032 0 0
-fix			belt3 all mesh/surface file meshes/conveyor1in3.stl type 1 move -5.064 0 0
-fix			belt4 all mesh/surface file meshes/conveyor1in3.stl type 1 move -7.096 0 0
-fix			wall all mesh/surface file meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 0 $(0.0098+0.0254+7*0.012) 0
+fix			belt1 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -1 0 0
+fix			belt2 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -3.032 0 0
+fix			belt3 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -5.064 0 0
+fix			belt4 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -7.096 0 0
+fix			wall all mesh/surface file ../meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 0 $(0.0098+0.0254+7*0.012) 0
 #region of particle insertion
-region 		bc block -0.48 -0.05 .4 .6 -0.06 0.06 units box
+region 		bc block -0.48 -0.05 .1 .6 -0.055 0.055 units box
 
 #particle distributions
-fix      pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 2500 nspheres 390 ntry 1000000 spheres file in.Pellets scale 0.001 type 1
+fix      pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 2500 nspheres 130 ntry 1000000 spheres file ../data/in.Pelletslow scale 0.001 type 1
 fix     pdd1 all particledistribution/discrete 39659 1 pts1 0.1
 fix     ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random &
-        insert_every once overlapcheck yes region bc ntry_mc 10000 volumefraction_region 0.001
+        insert_every once overlapcheck yes region bc ntry_mc 10000 volumefraction_region 0.2
 #fix 		pts1 all particletemplate/sphere 15485863 atom_type 1 density constant 4560 radius constant 0.006
 #fix 		pdd1 all particledistribution/discrete 15485867 1 pts1 1.0
 #fix 		ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0 -2 0 & 
@@ -59,18 +59,19 @@ fix     ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant
 fix     integr all multisphere #Added for multisphere
 #thermo settings
 compute		1 all erotate/sphere
-#compute     1 all ke/multisphere 
+compute     quat all rigid property quat
 thermo_style custom step atoms ke c_1 vol
 thermo 		1000
 thermo_modify lost ignore norm no
 
+#run 1
 #dump files
 #dump 		dmp all custom/vtk 200 post/movingMesh_*.vtk id type type x y z vx vy vz radius
 dump        dmp all custom/vtk 1000 post/multi_*.vtk id type mol x y z vx vy vz fx fy fz omegax omegay omegaz radius
 dump		dumpstl all mesh/stl 1000 post/dump*.stl
-dump		lmpXYZ all custom 1000 post/dump.xyzvel id vx vy vz x y z
-dump_modify     lmpXYZ sort id
-
+#dump		lmpXYZ all custom 1000 post/dump.xyzvel id vx vy vz x y z
+#dump_modify     lmpXYZ sort id
+dump       orien all local 1000 post/dump.pellet_orien2 c_quat[1] c_quat[2] c_quat[3] c_quat[4]
 #Use imported meshes as a granular wall/gran
 fix		bucket_wall all wall/gran model hooke tangential history mesh n_meshes &
 		5 meshes belt1 wall belt2 belt3 belt4
