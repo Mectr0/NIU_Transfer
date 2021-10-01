@@ -77,7 +77,7 @@ thermo		1000
 thermo_modify	lost ignore norm no
 
 run 1
-Setting up run at Fri Oct  1 07:31:54 2021
+Setting up run at Fri Oct  1 08:05:04 2021
 
 WARNING: Energy calculated for multisphere particles is currently not correct (../fix_multisphere.cpp:1312)
 INFO: Particle insertion ins: inserting every 0 steps
@@ -87,14 +87,14 @@ Memory usage per processor = 12.7107 Mbytes
 INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 1
  - a total of 1 particle templates (mass 1.353404e-03) inserted so far.
        1       70  1.6280784e-12              0              0              0           0.18 
-Loop time of 0.020711 on 4 procs for 1 steps with 70 atoms, finish time Fri Oct  1 07:31:54 2021
+Loop time of 0.0221671 on 4 procs for 1 steps with 70 atoms, finish time Fri Oct  1 08:05:04 2021
 
 
-Pair  time (%) = 4.875e-06 (0.0235382)
-Neigh time (%) = 0.00232997 (11.25)
-Comm  time (%) = 1.105e-05 (0.0533534)
-Outpt time (%) = 9.28e-05 (0.448072)
-Other time (%) = 0.0182723 (88.2251)
+Pair  time (%) = 6.175e-06 (0.0278566)
+Neigh time (%) = 0.00248605 (11.215)
+Comm  time (%) = 9.925e-06 (0.0447735)
+Outpt time (%) = 0.000281175 (1.26843)
+Other time (%) = 0.0193838 (87.4439)
 
 Nlocal:    17.5 ave 70 max 0 min
 Histogram: 3 0 0 0 0 0 0 0 0 1
@@ -108,5 +108,78 @@ Ave neighs/atom = 0
 Neighbor list builds = 1
 Dangerous builds = 0
 
-set group pdd1 quat_direct 0 0 0 1
-ERROR: Set command may not be used together with fix multisphere (../set.cpp:113)
+#insert the first particles so that dump is not empty
+#dump		dmp all custom/vtk 200 post/multi_*.vtk id type mol x y z vx vy vz fx fy fz omegax omegay omegaz radius
+dump        orien all local 200 post/dump.pellet_orienrand c_quat[1] c_quat[2] c_quat[3] c_quat[4] c_pos[1] c_pos[2] c_pos[3]
+dump        yoink all custom 200 post/dump.posrand.xyz id xs ys zs
+dump_modify yoink sort id
+#dump       pos  all local 200 post/dump.pellet_pos c_pos[1] c_pos[2] c_pos[3]
+
+#insert particles
+run		40000 upto
+Setting up run at Fri Oct  1 08:05:04 2021
+
+WARNING: Energy calculated for multisphere particles is currently not correct (../fix_multisphere.cpp:1312)
+Memory usage per processor = 12.7301 Mbytes
+    Step    Atoms         KinEng              1          ts[1]          ts[2]         Volume 
+       1       70  1.6280784e-12              0              0              0           0.18 
+    1000       70  6.5058031e-06              0    0.091379875     0.02300069           0.18 
+    2000       70  2.6036232e-05              0    0.091379875    0.026422176           0.18 
+    3000       70  5.8591289e-05              0    0.091379875    0.028654582           0.18 
+    4000       70  0.00010417097              0    0.091379875    0.030351869           0.18 
+    5000       70  0.00016277528              0    0.091379875    0.031737273           0.18 
+    6000       70  0.00023440422              0    0.091379875     0.03291602           0.18 
+    7000       70  0.00031905779              0    0.091379875    0.033946711           0.18 
+    8000       70  0.00041673598              0    0.091379875    0.034865578           0.18 
+    9000       70  0.00052743881              0    0.091379875    0.035696692           0.18 
+   10000       70  0.00065116626              0    0.091379875    0.036456918           0.18 
+   11000       70  0.00078791833              0    0.091379875    0.037158561           0.18 
+   12000       70  0.00093769504              0    0.091379875    0.037810893           0.18 
+   13000       70   0.0011004964              0    0.091379875    0.038421085           0.18 
+   14000       70   0.0012763223              0    0.091379875     0.03899481           0.18 
+   15000       70   0.0014651729              0    0.091379875    0.039536631           0.18 
+   16000       70   0.0016670481              0    0.091379875    0.040050282           0.18 
+   17000       70    0.001881948              0    0.091379875     0.04053886           0.18 
+   18000       70   0.0021098724              0    0.091379875     0.04100496           0.18 
+   19000       70   0.0023508215              0    0.091379875    0.041450783           0.18 
+   20000       70   0.0026047953              0    0.091379875    0.041878212           0.18 
+   21000       70   0.0028717936              0    0.091379875    0.042288871           0.18 
+   22000       70   0.0031518166              0    0.091379875    0.042684172           0.18 
+   23000       70   0.0034448642              0    0.091379875     0.04306535           0.18 
+   24000       70   0.0011325365              0    0.091379875    0.044896117           0.18 
+   25000       70  1.4606144e-09              0    0.091379875    0.011039456           0.18 
+   26000       70  1.7393835e-08              0    0.091379875    0.014088994           0.18 
+   27000       70  5.1992742e-09              0    0.091379875    0.012421148           0.18 
+   28000       70  3.7159261e-12              0    0.091379875   0.0060048874           0.18 
+   29000       70  1.6779217e-15              0    0.091379875   0.0027748385           0.18 
+   30000       70  7.3233249e-18              0    0.091379875    0.001613468           0.18 
+   31000       70  4.0982421e-23              0    0.091379875  0.00048524645           0.18 
+   32000       70  7.0596666e-24              0    0.091379875  0.00040366357           0.18 
+   33000       70  2.9183251e-27              0    0.091379875  0.00018608884           0.18 
+   34000       70  2.9146806e-30              0    0.091379875  9.9377224e-05           0.18 
+   35000       70  4.7806867e-31              0    0.091379875          1e-11           0.18 
+   36000       70  6.3615525e-31              0    0.091379875  9.1348994e-05           0.18 
+   37000       70  1.2772927e-30              0    0.091379875   0.0001010538           0.18 
+   38000       70  7.4496721e-30              0    0.091379875  0.00012092457           0.18 
+   39000       70   7.166879e-30              0    0.091379875  0.00012090807           0.18 
+   40000       70  7.1570753e-30              0    0.091379875  0.00012080438           0.18 
+Loop time of 0.787706 on 4 procs for 39999 steps with 70 atoms, finish time Fri Oct  1 08:05:05 2021
+
+
+Pair  time (%) = 0.0457764 (5.81135)
+Neigh time (%) = 0.32738 (41.5612)
+Comm  time (%) = 0.0436102 (5.53635)
+Outpt time (%) = 0.0192967 (2.44973)
+Other time (%) = 0.351643 (44.6413)
+
+Nlocal:    17.5 ave 70 max 0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 144
+Dangerous builds = 0
