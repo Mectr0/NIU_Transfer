@@ -45,7 +45,7 @@ fix			belt3 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -5.064 
 fix			belt4 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -7.096 0 0
 fix			wall all mesh/surface file ../meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 0 $(0.0098+0.0254+7*0.012) 0
 #region of particle insertion
-region 		bc block -0.48 -0.05 .1 .6 -0.055 0.055 units box
+region 		bc block -0.48 -0.05 .1 .6 -0.05 0.05 units box
 
 #particle distributions
 fix      pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 2500 nspheres 130 ntry 1000000 spheres file ../data/in.Pelletslow scale 0.001 type 1
