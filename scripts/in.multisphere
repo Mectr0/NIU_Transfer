@@ -59,7 +59,9 @@ fix     ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant
 fix     integr all multisphere #Added for multisphere
 #thermo settings
 compute		1 all erotate/sphere
-compute     quat all rigid property quat
+compute     quat all multisphere property quati
+compute pos  all multisphere property xcm
+
 thermo_style custom step atoms ke c_1 vol
 thermo 		1000
 thermo_modify lost ignore norm no
@@ -71,7 +73,7 @@ dump        dmp all custom/vtk 1000 post/multi_*.vtk id type mol x y z vx vy vz 
 dump		dumpstl all mesh/stl 1000 post/dump*.stl
 #dump		lmpXYZ all custom 1000 post/dump.xyzvel id vx vy vz x y z
 #dump_modify     lmpXYZ sort id
-dump       orien all local 1000 post/dump.pellet_orien2 c_quat[1] c_quat[2] c_quat[3] c_quat[4]
+dump       orien all local 1000 post/dump.pellet_orien c_quat[1] c_quat[2] c_quat[3] c_quat[4] c_pos[1] c_pos[2] c_pos[3]
 #Use imported meshes as a granular wall/gran
 fix		bucket_wall all wall/gran model hooke tangential history mesh n_meshes &
 		5 meshes belt1 wall belt2 belt3 belt4
@@ -96,4 +98,4 @@ run 20000
 
 #no particle insertion, movement
 unfix ins
-run 80000
+run 20000

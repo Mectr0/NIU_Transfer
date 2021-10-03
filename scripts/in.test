@@ -55,7 +55,8 @@ fix		integr all multisphere
 #output settings, include total thermal energy
 compute		1 all erotate/sphere
 compute quat all multisphere property quat
-compute pos  all rigid property xcm
+compute pos  all multisphere property xcm
+
 
 fix		ts all check/timestep/gran 1000 0.1 0.1
 thermo_style	custom step atoms ke c_1 f_ts[1] f_ts[2] vol
