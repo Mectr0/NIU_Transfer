@@ -11,23 +11,25 @@
 
 %-------------------------------------------------------
 clear all
-numPellets = 1
-partsperpellet = 70
-numTimesteps = 40000 ; 
-dumpFrequency = 200 ;
+numPellets = 300;
+partsperpellet = 70;
+numTimesteps = 50000 ; 
+dumpFrequency = 1000 ;
 
 DumpNumber = numTimesteps/dumpFrequency;
 
-name = 'dump.pellet_orienrand';
+name = 'dump.pellet_orien';
 fid = fopen(name,'r+');
 Quat =  zeros(DumpNumber, 4, numPellets);
 PosCM = zeros(DumpNumber, 3, numPellets);
-
+for k = 1:9
+        fgetl(fid); % The dump files comes with 18 lines of script before data starts
+ end
 for i = 1:DumpNumber
-    for k = 1:9
+    for k = 1:9 %9 lines of script between each dumped timestep
         fgetl(fid);
     end
-    for j = 1:numPellets
+    for j = 1:numPellets %Reading data from each line 
         Quat(i,1,j)= fscanf(fid,'%g',1);
         Quat(i,2,j)= fscanf(fid,'%g',1);
         Quat(i,3,j)= fscanf(fid,'%g',1);
@@ -38,23 +40,66 @@ for i = 1:DumpNumber
     end
     fgetl(fid);
 end
-
-OrienVec = zeros(DumpNumber, 3, numPellets) 
-x = 0; y = 0; z = 1;
+%Orientation vectors for each pellet's local axis. 
+%The pellet template is positioned lengthwise along the z axis
+OrienVecx = zeros(DumpNumber, 3, numPellets); %Allocating space 
+OrienVecy = zeros(DumpNumber, 3, numPellets);
+OrienVecz = zeros(DumpNumber, 3, numPellets);
+x = [1; 0; 0];
+y = [0; 1; 0];
+z = [0; 0; 1];
 
 for i = 1:DumpNumber
     for j = 1:numPellets
-    q0 = Quat(i,1,j);
+    q0 = Quat(i,1,j); %Using the quaternion for each timestep
     q1 = Quat(i,2,j);
     q2 = Quat(i,3,j);
     q3 = Quat(i,4,j);
  
-    Ans = [x*(q0^2+q1^2-q2^2-q3^2)+2*y*(q1*q2-q0*q3)+2*z*((q0*q2)+(q1*q3));
-           2*x*(q0*q3+q1*q2) + y*(q0^2-q1^2+q2^2-q3^2)+ 2*z*((q2*q3)-(q0*q1));
-           2*x*(q1*q3-q0*q2) + 2*y*(q0*q1 + q2*q3) + z*(q0^2-q1^2-q2^2+q3^2)]
+    Ansx = [x(1)*(q0^2+q1^2-q2^2-q3^2)+2*x(2)*(q1*q2-q0*q3)+2*x(3)*((q0*q2)+(q1*q3));   %Finding new orientation for each pellets local axes
+           2*x(1)*(q0*q3+q1*q2) + x(2)*(q0^2-q1^2+q2^2-q3^2)+ 2*x(3)*((q2*q3)-(q0*q1));
+           2*x(1)*(q1*q3-q0*q2) + 2*x(2)*(q0*q1 + q2*q3) + x(3)*(q0^2-q1^2-q2^2+q3^2)];
     
-    OrienVec(i,1,j)= Ans(1,1);
-    OrienVec(i,2,j)= Ans(2,1);
-    OrienVec(i,3,j)= Ans(3,1);
+    Ansy = [y(1)*(q0^2+q1^2-q2^2-q3^2)+2*y(2)*(q1*q2-q0*q3)+2*y(3)*((q0*q2)+(q1*q3));
+           2*y(1)*(q0*q3+q1*q2) + y(2)*(q0^2-q1^2+q2^2-q3^2)+ 2*y(3)*((q2*q3)-(q0*q1));
+           2*y(1)*(q1*q3-q0*q2) + 2*y(2)*(q0*q1 + q2*q3) + y(3)*(q0^2-q1^2-q2^2+q3^2)];
+    
+    Ansz = [z(1)*(q0^2+q1^2-q2^2-q3^2)+2*z(2)*(q1*q2-q0*q3)+2*z(3)*((q0*q2)+(q1*q3));
+           2*z(1)*(q0*q3+q1*q2) + z(2)*(q0^2-q1^2+q2^2-q3^2)+ 2*z(3)*((q2*q3)-(q0*q1));
+           2*z(1)*(q1*q3-q0*q2) + 2*z(2)*(q0*q1 + q2*q3) + z(3)*(q0^2-q1^2-q2^2+q3^2)];
+    
+%Storing new orientation vectors    
+    OrienVecx(i,1,j)= Ansx(1,1);
+    OrienVecx(i,2,j)= Ansx(2,1);
+    OrienVecx(i,3,j)= Ansx(3,1);
+    
+    OrienVecy(i,1,j)= Ansy(1,1);
+    OrienVecy(i,2,j)= Ansy(2,1);
+    OrienVecy(i,3,j)= Ansy(3,1);
+    
+    OrienVecz(i,1,j)= Ansz(1,1);
+    OrienVecz(i,2,j)= Ansz(2,1);
+    OrienVecz(i,3,j)= Ansz(3,1);
+    end
+end
+
+ConveyVec = [1 ; 0 ; 0];
+%Allocating for angles between each orientation vector and the conveyor
+%belt (moving in 1i + 0j + 0k)
+Alpha = zeros(DumpNumber, 1, numPellets);
+
+Beta = zeros(DumpNumber, 1, numPellets);
+
+Gamma = zeros(DumpNumber, 1, numPellets);
+for i = 1:DumpNumber
+    for j = 1:numPellets
+        %Using the dot product
+        %|ConveyVec|*|OrienVec| will always be one
+        Alpha(i,1,j) = acosd((ConveyVec(1)*OrienVecx(i,1,j)+ ConveyVec(2)*OrienVecx(i,2,j) + ConveyVec(3)*OrienVecx(i,3,j)));
+        
+        Beta(i,1,j) = acosd((ConveyVec(1)*OrienVecy(i,1,j)+ ConveyVec(2)*OrienVecy(i,2,j) + ConveyVec(3)*OrienVecy(i,3,j)));
+        
+        Gamma(i,1,j) = acosd((ConveyVec(1)*OrienVecz(i,1,j)+ ConveyVec(2)*OrienVecz(i,2,j) + ConveyVec(3)*OrienVecz(i,3,j)));
+        
     end
 end

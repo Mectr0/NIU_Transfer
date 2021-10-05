@@ -18,7 +18,7 @@ clc
 
 d = 0.006562 %m  measured from a physical pellet
 h = 3.81*d; %roughly 25 mm
-rho = 53.8 % kg/m^3 estimated using caliper and scale
+rho = 1398.82 % kg/m^3 estimated using caliper and scale
 
 Iz = 0.5*(rho)*(h*pi*(d/2)^2)*(d/2)^2; %Moment of inertia for the real pellet
 Ix = (1/12)*(rho)*(h*pi*(d/2)^2)*(3*(d/2)^2 + h^2); %Ix = Iy
@@ -67,7 +67,7 @@ end
 
 Isum = 2*Isum; %Symmetry about x-axis
         
-rx= vpasolve(Isum == Ix, r) %'Real',true)        
+rx = vpasolve(Isum == Ix, r) %'Real',true)        
 
        
         
