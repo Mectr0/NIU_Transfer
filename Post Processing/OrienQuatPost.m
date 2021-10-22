@@ -12,9 +12,10 @@
 %-------------------------------------------------------
 clear all
 numPellets = 300;
-partsperpellet = 70;
+%partsperpellet = 70;
 numTimesteps = 50000 ; 
 dumpFrequency = 1000 ;
+delta = 0.006562 % m   Pellet diameter
 
 DumpNumber = numTimesteps/dumpFrequency;
 
@@ -22,9 +23,19 @@ name = 'dump.pellet_orien';
 fid = fopen(name,'r+');
 Quat =  zeros(DumpNumber, 4, numPellets);
 PosCM = zeros(DumpNumber, 3, numPellets);
-for k = 1:9
+for k = 1:5
         fgetl(fid); % The dump files comes with 18 lines of script before data starts
- end
+end
+ 
+Xlo = fscanf(fid,'%g',1);
+Xhi = fscanf(fid,'%g',1);
+Ylo = fscanf(fid,'%g',1);
+Yhi = fscanf(fid,'%g',1);
+Zlo = fscanf(fid,'%g',1);
+Zhi = fscanf(fid,'%g',1);
+fgetl(fid);
+fgetl(fid);
+
 for i = 1:DumpNumber
     for k = 1:9 %9 lines of script between each dumped timestep
         fgetl(fid);
@@ -39,9 +50,37 @@ for i = 1:DumpNumber
         PosCM(i,3,j)= fscanf(fid,'%g',1);
     end
     fgetl(fid);
+    
 end
 %Orientation vectors for each pellet's local axis. 
 %The pellet template is positioned lengthwise along the z axis
+
+nx = floor((Xhi-(-0.5))/(1.7*delta))   %floor((Xhi-Xlo)/(1.7*delta)) The x domain is too long
+ny = floor((Yhi-Ylo)/(.7*delta))   
+nz = floor((Zhi-Zlo)/(1.7*delta))
+
+%--------------------------------------------
+Domainx = [1 134]; %INPUT: REGION OF INTEREST
+if Domainx(1,2) > nx || Domainx(1,1) < 1
+    error('Region of interest in x must match domain mesh')
+end
+%--------------------------------------------
+Domainy = [1 217]; %INPUT: REGION OF INTEREST
+if Domainy(1,2) > ny || Domainy(1,1) < 1
+    error('Region of interest in y must match domain mesh')
+end
+%--------------------------------------------
+Domainz = [1 13];  %INPUT: REGION OF INTEREST           
+if Domainz(1,2) > nz || Domainz(1,1) < 1
+    error('Region of interest in z must match domain mesh')
+end
+
+for kk = 1:(Domainz(1,2)-Domainz(1,1))
+    for jj = 1:(Domainy(1,2)-Domainy(1,1))
+        for ii = 1:(Domainx(1,2)-Domainx(1,1))
+        end
+    end
+end
 OrienVecx = zeros(DumpNumber, 3, numPellets); %Allocating space 
 OrienVecy = zeros(DumpNumber, 3, numPellets);
 OrienVecz = zeros(DumpNumber, 3, numPellets);
