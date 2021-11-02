@@ -1,10 +1,12 @@
-function [pInEachBin, COM] = binPelletAnalysisV2(name,nt,nmax,dx,dy,dz,maxP)
+function [pInEachBin, COM, Vel] = binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1,px,py,pz)
 fid = fopen(name,'r+');
 for zz = 1:5
         fgetl(fid); % The dump files comes with 18 lines of script before data starts
 end
-Xlo = fscanf(fid,'%g',1);
-Xhi = fscanf(fid,'%g',1);
+Xlo = 0.4;%fscanf(fid,'%g',1);
+Xhi = 2;%fscanf(fid,'%g',1);
+fscanf(fid,'%g',1);
+fscanf(fid,'%g',1);
 Ylo = fscanf(fid,'%g',1);
 Yhi = fscanf(fid,'%g',1);
 Zlo = fscanf(fid,'%g',1);
@@ -13,7 +15,7 @@ fgetl(fid);
 fgetl(fid);
 
 
-nx = ceil((2 - (0.5))/dx); %ceil((Xhi - Xlo)/dx); NOTE: domain is large in this direction
+nx = ceil((Xhi - Xlo)/dx); %ceil((Xhi - Xlo)/dx); NOTE: domain is large in this direction
 ny = ceil((Yhi - Ylo)/dy); %Number of bins in y direction
 nz = ceil((Zhi - Zlo)/dz);
 
@@ -24,21 +26,32 @@ nz = ceil((Zhi - Zlo)/dz);
 pInEachBin = zeros(nx,ny,nz,nt,maxP);
 counter=zeros(nx,ny,nz,nt,maxP);
 
-COM = zeros(nmax,4,nt);
-Vel = zeros(nmax,4,nt);
-Quat = zeros(nmax,5,nt);
+COM = zeros(n1,4,nt);
+Vel = zeros(n1,4,nt);
+Quat = zeros(n1,5,nt);
+np = n1;
 for it = 1:nt
 %----------------------------
     for zz = 1:3 % lines of script between each dumped timestep
         fgetl(fid);
     end
+    
+    npold = np;
     np = fscanf(fid,'%d\n',1); %Number of pellets for this timestep
+    if it == 1 & np ~= n1 %Making sure the initial number of pellets is correct
+        error('n1 input must match initial number of pellets')
+    end
+    AddNum = np - npold;
     
     for zz = 1:5
         fgetl(fid);
     end
    
 %-----------------------------
+    COM = [COM; zeros(AddNum,4,nt)];
+    Vel = [Vel; zeros(AddNum,4,nt)];
+    Quat =[Quat;zeros(AddNum,5,nt)]; 
+
     for ip = 1:np
         id = fscanf(fid,'%d',1);
         Quat(ip,1,it) = id;
@@ -47,22 +60,22 @@ for it = 1:nt
         COM(ip,2:4,it) = fscanf(fid,'%g %g %g',3);
         Vel(ip,1,it) = id;
         Vel(ip,2:4,it) = fscanf(fid,'%g %g %g\n',3);
-        
-        %!!!!!NOTE: I preallocate for max number of pellets. I need to have
-        %a stop condition for empty rows in COM
     end
         Quat(:,:,it) = sortrows(Quat(:,:,it)); %Sort each matrix by pellet id 
         COM(:,:,it) = sortrows(COM(:,:,it));
         Vel(:,:,it) = sortrows(Vel(:,:,it));
     for ip = 1:np
-        i = ceil(COM(ip,2)/dx); %NOTE: DOMAIN MUST ALL BE POSITIVE
-        j = ceil(COM(ip,3)/dy);
-        k = ceil(COM(ip,4)/dz); 
+%         if COM(ip,1) == 0 %Disregards empty rows
+%         else
+        i = ceil((COM(ip,2,it)-Xlo)/dx); %NOTE: DOMAIN MUST ALL BE POSITIVE
+        j = ceil((COM(ip,3,it)-Ylo)/dy); %DOES THE DOMAIN HAVE TO START AT THE ORIGIN?
+        k = ceil((COM(ip,4,it)-Zlo)/dz); 
+        %if any(px(:) == i) && any(py(:) == j) && any(pz(:) == k)
         %bID4p(ip,it,:) = [i,j,k];
         counter(i,j,k,it) = counter(i,j,k,it)+1;
-        pInEachBin(i,j,k,it,counter(i,j,k,it)) = ip;
+        pInEachBin(i,j,k,it,counter(i,j,k,it)) = COM(ip,1);
+        %end
+        end
     end
-
-end
-fclose(fid)
+fclose(fid);
 end

@@ -53,6 +53,7 @@ fix		ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0.
 fix		integr all multisphere
 #output settings, include total thermal energy
 compute		1 all erotate/sphere
+compute bid all multisphere property id_multisphere
 compute quat all multisphere property quat
 compute pos  all multisphere property xcm
 
@@ -65,10 +66,10 @@ thermo_modify	lost ignore norm no
 run 1
 
 #dump		dmp all custom/vtk 200 post/multi_*.vtk id type mol x y z vx vy vz fx fy fz omegax omegay omegaz radius
-dump        orien all local 200 post/dump.pellet_orienrand c_quat[1] c_quat[2] c_quat[3] c_quat[4] c_pos[1] c_pos[2] c_pos[3]
-dump        pel all custom 200 post/dump.posrand.xyz id xs ys zs
-dump_modify pel sort id
+dump        orien all local 200 post/dump.pellet_orienrand c_bid c_quat[1] c_quat[2] c_quat[3] c_quat[4] c_pos[1] c_pos[2] c_pos[3]
+#dump        pel all custom 200 post/dump.posrand.xyz id_multisphere xs ys zs
+#dump_modify pel sort id
 #dump       pos  all local 200 post/dump.pellet_pos c_pos[1] c_pos[2] c_pos[3]
 
 #insert particles
-run		40000 upto every 200 "delete_atoms region delete"
+run		40000 upto #every 200 "delete_atoms region delete"
