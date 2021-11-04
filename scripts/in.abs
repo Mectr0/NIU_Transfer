@@ -51,7 +51,7 @@ region 		bc block 0.52 .95 .1 .6 .015 0.115 units box
 fix      pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 2500 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 1
 fix     pdd1 all particledistribution/discrete 39659 1 pts1 0.1
 fix     ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random &
-        insert_every 1000 overlapcheck yes region bc ntry_mc 10000 particles_in_region 10
+        insert_every 1000 overlapcheck yes region bc ntry_mc 10000 particles_in_region 10000
 #fix 		pts1 all particletemplate/sphere 15485863 atom_type 1 density constant 4560 radius constant 0.006
 #fix 		pdd1 all particledistribution/discrete 15485867 1 pts1 1.0
 #fix 		ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0 -2 0 & 
@@ -80,7 +80,7 @@ thermo_modify lost ignore norm no
 dump       orien all local 1000 post/dump.pellet_orienadd c_bid c_quat[1] c_quat[2] c_quat[3] c_quat[4] &
            c_pos[1] c_pos[2] c_pos[3] c_vel[1] c_vel[2] c_vel[3] 
 #dump_modify orien sort id
-dump        pel all custom 200 post/dump.posadd.xyz id_multisphere xs ys zs
+dump        pel all custom 1000 post/dump.posadd.xyz id_multisphere xs ys zs
 dump_modify pel sort id
 #Use imported meshes as a granular wall/gran
 fix		bucket_wall all wall/gran model hooke tangential history mesh n_meshes &
