@@ -1,24 +1,28 @@
-clear
-nmax = 300; %Max number of pellets
-dumpfreq = 1000;
-nsteps = 15000;
+%% SORTING
+clear all
+close all
+
+dumpfreq = 1000; %determined by liggghts script
+nsteps = 45000; %determined by liggghts script
 nt = nsteps/dumpfreq; %Number of timesteps
-delta = 0.05; %0.006562; %Pellet Diameter : Should I use actual value or simulation value?
+delta = 0.006562; %Pellet Diameter 
+
 dx = 4*delta;
 dy = 2.5*delta;
 dz = 2*delta;
-name = 'dump.pellet_orien10'; %Name of data file
+
+name = 'dump.pellet_orienadd8'; %Name of data file
+
 maxP = 15 ;%Max amount of pellets that could fit in a bin (for preallocation)
 n1 = 10; %number of pellets in the first timestep
-px = [6:8];
-py = [1:2];
-pz = [1:2];
 
-[pInEachBin,COM,Vel]= binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1,px,py,pz);
+[pInEachBin,COM,Vel]= binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1);
+
+%% PLOTTING DATA
 
 for i = 1:nt
 
-Inspect = nonzeros(pInEachBin(:,1:2,:,i,:));
+Inspect = nonzeros(pInEachBin(:,1:50,:,i,:));
 VelavgY(i) = mean(Vel(Inspect,3,i));
 
 end

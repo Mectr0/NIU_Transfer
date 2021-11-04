@@ -1,10 +1,10 @@
-function [pInEachBin, COM, Vel] = binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1,px,py,pz)
+function [pInEachBin, COM, Vel] = binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1)
 fid = fopen(name,'r+');
 for zz = 1:5
         fgetl(fid); % The dump files comes with 18 lines of script before data starts
 end
-Xlo = 0.4;%fscanf(fid,'%g',1);
-Xhi = 2;%fscanf(fid,'%g',1);
+Xlo = 0.5;%fscanf(fid,'%g',1);
+Xhi =   2;%fscanf(fid,'%g',1);
 fscanf(fid,'%g',1);
 fscanf(fid,'%g',1);
 Ylo = fscanf(fid,'%g',1);
@@ -53,13 +53,28 @@ for it = 1:nt
     Quat =[Quat;zeros(AddNum,5,nt)]; 
 
     for ip = 1:np
-        id = fscanf(fid,'%d',1);
-        Quat(ip,1,it) = id;
-        Quat(ip,2:5,it) = fscanf(fid,'%g %g %g %g',4);
-        COM(ip,1,it) = id;
-        COM(ip,2:4,it) = fscanf(fid,'%g %g %g',3);
-        Vel(ip,1,it) = id;
-        Vel(ip,2:4,it) = fscanf(fid,'%g %g %g\n',3);
+          templine = fgetl(fid);
+          tempcells = textscan(templine,'%d %f %f %f %f %f %f %f %f %f %f');
+          Quat(ip,1,it) = tempcells{1};
+          Quat(ip,2,it) = tempcells{2};
+          Quat(ip,3,it) = tempcells{3};
+          Quat(ip,4,it) = tempcells{4};
+          Quat(ip,5,it) = tempcells{5};
+          COM(ip,1,it) = tempcells{1};
+          COM(ip,2,it) = tempcells{6};
+          COM(ip,3,it) = tempcells{7};
+          COM(ip,4,it) = tempcells{8};
+          Vel(ip,1,it) = tempcells{1};
+          Vel(ip,2,it) = tempcells{9};
+          Vel(ip,3,it) = tempcells{10};
+          Vel(ip,4,it) = tempcells{11};
+%         id = fscanf(fid,'%d',1);
+%         Quat(ip,1,it) = id;
+%         Quat(ip,2:5,it) = fscanf(fid,'%g %g %g %g',4);
+%         COM(ip,1,it) = id;
+%         COM(ip,2:4,it) = fscanf(fid,'%g %g %g',3);
+%         Vel(ip,1,it) = id;
+%         Vel(ip,2:4,it) = fscanf(fid,'%g %g %g\n',3);
     end
         Quat(:,:,it) = sortrows(Quat(:,:,it)); %Sort each matrix by pellet id 
         COM(:,:,it) = sortrows(COM(:,:,it));
@@ -75,7 +90,7 @@ for it = 1:nt
         counter(i,j,k,it) = counter(i,j,k,it)+1;
         pInEachBin(i,j,k,it,counter(i,j,k,it)) = COM(ip,1);
         %end
-        end
     end
+end
 fclose(fid);
 end

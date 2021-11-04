@@ -1,0 +1,118 @@
+#Simulation Designed by Michael Roeing-Donna and added to by Connor Murphy
+#This simulation inserts enough pellets to fill the bin and continuously adds more
+atom_style 	sphere
+atom_modify map array sort 0 0 
+boundary 	m f m
+newton		off
+communicate	single vel yes
+#processors 1 1 1 would we need this?
+units		si 
+
+#Defining input variables
+
+
+region 		reg block 0.09 2 0 1 0 0.13 units box
+create_box	1 reg
+neighbor	0.004 bin
+neigh_modify delay 0 
+#neigh_modify exclude molecule CHECK THIS
+fix			m1 all property/global youngsModulus peratomtype 5.e6
+fix			m2 all property/global poissonsRatio peratomtype 0.45
+fix			m3 all property/global coefficientRestitution peratomtypepair 1 0.9
+fix 			m4 all property/global coefficientFriction peratomtypepair 1 1
+fix 			m5 all property/global characteristicVelocity scalar 2.0
+
+pair_style 	gran model hooke tangential history
+pair_coeff	* *
+timestep 	0.0001
+#fix			1 all nve/sphere #MIGHT have to change this
+fix			2 all gravity 9.81 vector 0.0 -1.0 0.0
+
+
+#input walls
+fix			boxwalls_z1 all wall/gran model hooke tangential history primitive type 1 zplane 0.0
+fix 		boxwalls_z2 all wall/gran model hooke tangential history primitive type 1 zplane +0.13
+fix			boxwalls_y1 all wall/gran model hooke tangential history primitive type 1 yplane 0.0
+#fix			boxwalls_y1 all wall/reflect ylo EDGE
+fix 		boxwalls_y2 all wall/gran model hooke tangential history primitive type 1 yplane +1
+fix			removable_wall all wall/gran model hooke tangential history primitive type 1 xplane 1.0
+fix 		boxwalls_x2 all wall/gran model hooke tangential history primitive type 1 xplane +0.5 #-0.91
+
+#input cad files -- reference belt is 2.032 m long
+fix			belt1 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move 0 0 0.065
+fix			belt2 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -2.032 0 0.065
+fix			belt3 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -4.064 0 0.065
+fix			belt4 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -6.096 0 0.065
+fix			wall all mesh/surface file ../meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 1 $(0.0098+0.0254+7*0.012) 0.065
+#region of particle insertion
+region 		bc block 0.52 .95 .1 .95 .015 0.115 units box
+region      bc2 block 0.52 .95 .8 .95 0.015 0.115
+#particle distributions
+fix     pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 1399 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 1
+fix     pdd1 all particledistribution/discrete 39659 1 pts1 0.1
+fix     ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random &
+        insert_every once overlapcheck yes region bc ntry_mc 10000 particles_in_region 10
+#fix 		pts1 all particletemplate/sphere 15485863 atom_type 1 density constant 4560 radius constant 0.006
+#fix 		pdd1 all particledistribution/discrete 15485867 1 pts1 1.0
+#fix 		ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0 -2 0 & 
+#			insert_every 2000 overlapcheck yes all_in yes particles_in_region 4000 region bc
+
+fix     integr all multisphere #Added for multisphere
+#thermo settings
+compute	   1 all erotate/sphere
+compute quat all multisphere property quat
+compute pos all multisphere property xcm
+compute bid all multisphere property id_multisphere
+compute vel all multisphere property vcm
+
+thermo_style custom step atoms ke c_1 vol
+thermo 		1000
+thermo_modify lost ignore norm no
+
+#run 1
+#dump files
+#dump 		dmp all custom/vtk 200 post/movingMesh_*.vtk id type type x y z vx vy vz radius
+#dump        dmp all custom/vtk 1000 post/multi_*.vtk id type mol x y z vx vy vz fx fy fz omegax omegay omegaz radius
+#dump		dumpstl all mesh/stl 1000 post/dump*.stl
+#dump		lmpXYZ all custom 1000 post/dump.xyzvel id vx vy vz x y z
+#dump_modify     lmpXYZ sort id
+
+dump       orien all local 1000 post/dump.pellet_orienadd c_bid c_quat[1] c_quat[2] c_quat[3] c_quat[4] &
+           c_pos[1] c_pos[2] c_pos[3] c_vel[1] c_vel[2] c_vel[3] 
+#dump_modify orien sort id
+
+dump        pel all custom 200 post/dump.posadd.xyz id_multisphere xs ys zs
+dump_modify pel sort id
+
+#Use imported meshes as a granular wall/gran
+
+fix		bucket_wall all wall/gran model hooke tangential history mesh n_meshes &
+		5 meshes belt1 wall belt2 belt3 belt4
+		
+#test run for cad files
+#unfix ins
+#run 200
+
+
+#particle insertion, no movement, i.e. particle settling	
+
+run 5000
+
+#particle insertion, movement
+unfix 	removable_wall
+#move cads/continuously insert pellets
+fix     pts2 all particletemplate/multisphere 123457 atom_type 1 density constant 1399 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 2
+fix     pdd2 all particledistribution/discrete 39659 1 pts2 0.1
+fix     ins2  all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random &
+        insert_every 5000 overlapcheck yes region bc2 ntry_mc 10000 particles_in_region 10
+
+fix 		movecad1 all move/mesh mesh belt1 linear 0.02653 0 0
+fix 		movecad2 all move/mesh mesh belt2 linear 0.02653 0 0
+fix 		movecad3 all move/mesh mesh belt3 linear 0.02653 0 0
+fix 		movecad4 all move/mesh mesh belt4 linear 0.02653 0 0
+
+run 40000
+
+#no particle insertion, movement
+unfix ins
+run 1000
