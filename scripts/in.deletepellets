@@ -1,7 +1,7 @@
 #Simulation Designed by Michael Roeing-Donna and added to by Connor Murphy
-#LOOK INTO fix rigid command
+#This simulation inserts enough pellets to fill the bin and continuously adds more
 atom_style 	sphere
-atom_modify map array sort 0 0 #MIGHT have to change this because of conveyor
+atom_modify map array sort 0 0 
 boundary 	m f m
 newton		off
 communicate	single vel yes
@@ -45,10 +45,10 @@ fix			belt3 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -4.064 
 fix			belt4 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -6.096 0 0.065
 fix			wall all mesh/surface file ../meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 1 $(0.0098+0.0254+7*0.012) 0.065
 #region of particle insertion
-region 		bc block 0.52 .95 .1 .6 .015 0.115 units box
-
+region 		bc block 0.52 .95 .1 .95 .015 0.115 units box
+region      bc2 block 0.52 .95 .8 .95 0.015 0.115
 #particle distributions
-fix      pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 2500 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 1
+fix      pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 1399 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 1
 fix     pdd1 all particledistribution/discrete 39659 1 pts1 0.1
 fix     ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random &
         insert_every 1000 overlapcheck yes region bc ntry_mc 10000 particles_in_region 10000
@@ -106,4 +106,4 @@ fix 		movecad4 all move/mesh mesh belt4 linear 0.02653 0 0
 
 #no particle insertion, movement
 unfix ins
-run 5000
+run 1000

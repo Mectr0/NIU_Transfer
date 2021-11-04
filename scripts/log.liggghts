@@ -1,8 +1,8 @@
 LIGGGHTS (Version LIGGGHTS-PUBLIC 3.8.0, compiled 2021-08-18-09:08:54 by murphyc, git commit 78f1a0277ef1f4f8ec5be8ad2f9715aa0ca5796c)
 #Simulation Designed by Michael Roeing-Donna and added to by Connor Murphy
-#LOOK INTO fix rigid command
+#This simulation inserts enough pellets to fill the bin and continuously adds more
 atom_style 	sphere
-atom_modify map array sort 0 0 #MIGHT have to change this because of conveyor
+atom_modify map array sort 0 0
 boundary 	m f m
 newton		off
 communicate	single vel yes
@@ -15,7 +15,7 @@ units		si
 region 		reg block 0.09 2 0 1 0 0.13 units box
 create_box	1 reg
 Created orthogonal box = (0.09 0 0) to (2 1 0.13)
-  8 by 6 by 1 MPI processor grid
+  2 by 2 by 1 MPI processor grid
 neighbor	0.004 bin
 neigh_modify delay 0
 #neigh_modify exclude molecule CHECK THIS
@@ -49,31 +49,31 @@ fix			belt4 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -6.096 
 fix			wall all mesh/surface file ../meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 1 $(0.0098+0.0254+7*0.012) 0.065
 fix			wall all mesh/surface file ../meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 1 0.1192000000000000004 0.065
 #region of particle insertion
-region 		bc block 0.52 .95 .1 .6 .015 0.115 units box
-
+region 		bc block 0.52 .95 .1 .95 .015 0.115 units box
+region      bc2 block 0.52 .95 .8 .95 0.015 0.115
 #particle distributions
-fix      pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 2500 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 1
+fix     pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 1399 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 1
 Finished calculating properties of template
-   mass = 1.353404e-03, radius of bounding sphere = 1.255275e-02, radius of equivalent sphere = 5.055913e-03
+   mass = 7.573646e-04, radius of bounding sphere = 1.255275e-02, radius of equivalent sphere = 5.055913e-03
    center of mass = 0.000000e+00, 0.000000e+00, 0.000000e+00
    center of bounding sphere in body coords = 1.022506e-05, 2.763392e-07, -6.820591e-06
-   Principal moments of inertia_: 7.169240e-08, 7.168493e-08, 7.244664e-09
+   Principal moments of inertia_: 4.011907e-08, 4.011489e-08, 4.054114e-09
      Eigenvector: 9.829750e-01, 1.837394e-01, 1.219249e-04
      Eigenvector: -1.837393e-01, 9.829749e-01, -5.331589e-04
      Eigenvector: -2.178114e-04, 5.016795e-04, 9.999999e-01
-     Inertia tensor: 7.169215e-08, 1.357167e-12, 1.403672e-11
-     Inertia tensor: 1.357167e-12, 7.168516e-08, -3.232818e-11
-     Inertia tensor: 1.403672e-11, -3.232818e-11, 7.244683e-09
+     Inertia tensor: 4.011893e-08, 7.594709e-13, 7.854947e-12
+     Inertia tensor: 7.594709e-13, 4.011502e-08, -1.809085e-11
+     Inertia tensor: 7.854947e-12, -1.809085e-11, 4.054125e-09
 fix     pdd1 all particledistribution/discrete 39659 1 pts1 0.1
 WARNING: particledistribution/discrete: sum of distribution weights != 1, normalizing distribution (../fix_particledistribution_discrete.cpp:135)
-fix     ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random         insert_every 1000 overlapcheck yes region bc ntry_mc 10000 particles_in_region 10000
+fix     ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random         insert_every once overlapcheck yes region bc ntry_mc 10000 particles_in_region 10
 #fix 		pts1 all particletemplate/sphere 15485863 atom_type 1 density constant 4560 radius constant 0.006
 #fix 		pdd1 all particledistribution/discrete 15485867 1 pts1 1.0
 #fix 		ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0 -2 0 #			insert_every 2000 overlapcheck yes all_in yes particles_in_region 4000 region bc
 
 fix     integr all multisphere #Added for multisphere
 #thermo settings
-compute		1 all erotate/sphere
+compute	   1 all erotate/sphere
 compute quat all multisphere property quat
 compute pos all multisphere property xcm
 compute bid all multisphere property id_multisphere
@@ -93,9 +93,12 @@ thermo_modify lost ignore norm no
 
 dump       orien all local 1000 post/dump.pellet_orienadd c_bid c_quat[1] c_quat[2] c_quat[3] c_quat[4]            c_pos[1] c_pos[2] c_pos[3] c_vel[1] c_vel[2] c_vel[3]
 #dump_modify orien sort id
-dump        pel all custom 1000 post/dump.posadd.xyz id_multisphere xs ys zs
+
+dump        pel all custom 200 post/dump.posadd.xyz id_multisphere xs ys zs
 dump_modify pel sort id
+
 #Use imported meshes as a granular wall/gran
+
 fix		bucket_wall all wall/gran model hooke tangential history mesh n_meshes 		5 meshes belt1 wall belt2 belt3 belt4
 
 #test run for cad files
@@ -104,116 +107,7 @@ fix		bucket_wall all wall/gran model hooke tangential history mesh n_meshes 		5 
 
 
 #particle insertion, no movement, i.e. particle settling
-run 10000
-Setting up run at Tue Nov  2 11:47:02 2021
 
-WARNING: Energy calculated for multisphere particles is currently not correct (../fix_multisphere.cpp:1312)
-INFO: Particle insertion ins: inserting every 1000 steps
-Memory usage per processor = 23.5311 Mbytes
-    Step    Atoms         KinEng              1         Volume 
-       0        0              0              0      1.3889348 
-INFO: Particle insertion ins: inserted 6066 particle templates (mass 8.209746e+00) at step 1
- - a total of 6066 particle templates (mass 8.209746e+00) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-    1000   424620      3.9464202              0      1.3889348 
-INFO: Particle insertion ins: inserted 1576 particle templates (mass 2.132964e+00) at step 1001
- - a total of 7642 particle templates (mass 1.034271e+01) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-    2000   534940      9.6422639              0      1.3889348 
-INFO: Particle insertion ins: inserted 2419 particle templates (mass 3.273883e+00) at step 2001
- - a total of 10061 particle templates (mass 1.361659e+01) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-    3000   704270      3.3386094              0      1.3889348 
-INFO: Particle insertion ins: inserted 2634 particle templates (mass 3.564865e+00) at step 3001
- - a total of 12695 particle templates (mass 1.718146e+01) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-    4000   888650      2.8303663              0      1.3889348 
-INFO: Particle insertion ins: inserted 1555 particle templates (mass 2.104542e+00) at step 4001
- - a total of 14250 particle templates (mass 1.928600e+01) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-    5000   997500      1.7298519              0      1.3889348 
-INFO: Particle insertion ins: inserted 1012 particle templates (mass 1.369644e+00) at step 5001
- - a total of 15262 particle templates (mass 2.065564e+01) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-    6000  1068340     0.62563042              0      1.3889348 
-INFO: Particle insertion ins: inserted 706 particle templates (mass 9.555029e-01) at step 6001
- - a total of 15968 particle templates (mass 2.161115e+01) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-    7000  1117760     0.26128085              0      1.3889348 
-INFO: Particle insertion ins: inserted 461 particle templates (mass 6.239190e-01) at step 7001
- - a total of 16429 particle templates (mass 2.223507e+01) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-    8000  1150030     0.14806359              0      1.3889348 
-INFO: Particle insertion ins: inserted 235 particle templates (mass 3.180498e-01) at step 8001
- - a total of 16664 particle templates (mass 2.255312e+01) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-    9000  1166480    0.079774861              0      1.3889348 
-INFO: Particle insertion ins: inserted 173 particle templates (mass 2.341388e-01) at step 9001
- - a total of 16837 particle templates (mass 2.278725e+01) inserted so far.
-WARNING: Particle insertion: Less insertions than requested (../fix_insert.cpp:814)
-   10000  1178590    0.062243205              0      1.3889348 
-Loop time of 2350.13 on 48 procs for 10000 steps with 1178590 atoms, finish time Tue Nov  2 12:26:13 2021
-
-
-Pair  time (%) = 49.747 (2.11678)
-Neigh time (%) = 71.5512 (3.04457)
-Comm  time (%) = 13.3268 (0.567065)
-Outpt time (%) = 1.78233 (0.0758396)
-Other time (%) = 2213.72 (94.1957)
-
-Nlocal:    24554 ave 310389 max 0 min
-Histogram: 42 0 1 2 0 0 0 0 0 3
-Nghost:    6142.96 ave 86645 max 0 min
-Histogram: 41 1 0 2 0 3 0 0 0 1
-Neighs:    241557 ave 3.14776e+06 max 0 min
-Histogram: 42 0 1 2 0 0 0 0 2 1
-
-Total # of neighbors = 11594741
-Ave neighs/atom = 9.83781
-Neighbor list builds = 1063
-Dangerous builds = 0
-
-#particle insertion, movement
-unfix 	removable_wall
-#move cads
-fix 		movecad1 all move/mesh mesh belt1 linear 0.02653 0 0
-fix 		movecad2 all move/mesh mesh belt2 linear 0.02653 0 0
-fix 		movecad3 all move/mesh mesh belt3 linear 0.02653 0 0
-fix 		movecad4 all move/mesh mesh belt4 linear 0.02653 0 0
-
-#run 10000
-
-#no particle insertion, movement
-unfix ins
 run 5000
-Setting up run at Tue Nov  2 12:26:13 2021
+Setting up run at Thu Nov  4 10:24:52 2021
 
-WARNING: Energy calculated for multisphere particles is currently not correct (../fix_multisphere.cpp:1312)
-Memory usage per processor = 41.4644 Mbytes
-    Step    Atoms         KinEng              1         Volume 
-   10000  1178590    0.062243205              0      1.3889348 
-   11000  1178590    0.025136493              0      1.3885308 
-   12000  1178590    0.033875214              0      1.3881285 
-   13000  1178590    0.028471781              0      1.3877237 
-   14000  1178590    0.037342368              0      1.3873193 
-   15000  1178590    0.040342706              0      1.3869165 
-Loop time of 1331.79 on 48 procs for 5000 steps with 1178590 atoms, finish time Tue Nov  2 12:48:26 2021
-
-
-Pair  time (%) = 39.0074 (2.92894)
-Neigh time (%) = 32.7517 (2.45923)
-Comm  time (%) = 6.09897 (0.457953)
-Outpt time (%) = 1.04601 (0.0785417)
-Other time (%) = 1252.89 (94.0753)
-
-Nlocal:    24554 ave 310745 max 0 min
-Histogram: 42 0 1 2 0 0 0 0 0 3
-Nghost:    6014.44 ave 86498 max 0 min
-Histogram: 41 1 0 2 1 2 0 0 0 1
-Neighs:    238658 ave 3.13255e+06 max 0 min
-Histogram: 42 0 1 2 0 0 0 0 1 2
-
-Total # of neighbors = 11455601
-Ave neighs/atom = 9.71975
-Neighbor list builds = 358
-Dangerous builds = 0
