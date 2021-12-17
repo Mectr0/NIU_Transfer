@@ -1,4 +1,5 @@
-function [pInEachBin, COM, Vel,nx,ny,nz] = binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1)
+% Function Created by Connor Murphy
+function [pInEachBin, COM, Vel, Quat,nx,ny,nz] = binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1)
 fid = fopen(name,'r+');
 for zz = 1:5
         fgetl(fid); % The dump files comes with 18 lines of script before data starts
