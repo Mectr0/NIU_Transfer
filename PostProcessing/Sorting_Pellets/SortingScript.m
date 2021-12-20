@@ -5,7 +5,7 @@ clear all
 close all
 
 dumpfreq = 1000; %IMPORTANT: determined by liggghts script
-nsteps = 46000;  %IMPORTANT: determined by liggghts script
+nsteps = 121000;  %IMPORTANT: determined by liggghts script
 nt = nsteps/dumpfreq; %Number of timesteps
 delta = 0.006562; %Pellet Diameter from InertiaToRadius.m
 
@@ -15,7 +15,7 @@ dz = 2*delta;
 
 name = '../dump.pellet_test'; %Name of data file
 
-maxP = 8; %Max amount of pellets that could fit in a bin (for preallocation) May want to change for bigger bins
+maxP = 10; %Max amount of pellets that could fit in a bin (for preallocation) May want to change for bigger bins
 n1 = 9615; %IMPORTANT: Number of pellets in the first timestep. Find this value in dump file.
 
 [pInEachBin,COM,Vel, Quat, nx, ny, nz]= binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1); 

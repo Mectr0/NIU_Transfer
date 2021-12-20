@@ -9,11 +9,12 @@ fprintf('Number of bins in Z: %d  Bin size (m): %f \n', nz, dz)
 
 InspectXlo = 1;     %INPUTS: These Values are inputs for what region the user wants to inspect
 InspectXhi = 19;
-InspectYlo = 10;
-InspectYhi = 61;
+InspectYlo = 1;
+InspectYhi = 60;
 InspectZlo = 1;
 InspectZhi = 10;
 %% Plotting a cube
+%Unless dimensions of simulation change, this shouldn't be touched
 figure
 hold on
 axis equal
@@ -43,16 +44,30 @@ plotcube(Inspectdim,O3,0.6,[0 1 0]);
 plot3(InspectCenter(1),InspectCenter(2),InspectCenter(3),'*k')
 
 
-%% Plotting Data
+%% Plotting Quaternion Data
+figure
 for i = 1:nt
-
-Inspect = nonzeros(pInEachBin(:,10:60,:,i,:));
-VelavgY(i) = mean(Vel(Inspect,3,i));
-Inspect2 = nonzeros(pInEachBin(:,10:60,:,i,:));
-
+Inspect = nonzeros(pInEachBin(InspectXlo:InspectXhi,InspectYlo:InspectYhi,InspectZlo:InspectZhi,i,:));
+%nonzeros is used because the 5th dimension of pInEachBin is preallocated
+%with zeros. We don't want these values. 
+Q0 = Quat(Inspect,2,i);
+Q1 = Quat(Inspect,3,i);
+Q2 = Quat(Inspect,4,i);
+Q3 = Quat(Inspect,5,i);
+histogram(Q1); %Change which quaternion you want
+title('Timestep',i)
+xlabel('Quaternion q0')
+ylabel('Number of Pellets')
+pause(0.5)
 end
 
 %% Plotting Average Y velocity
+for i = 1:nt
+Inspect = nonzeros(pInEachBin(InspectXlo:InspectXhi,InspectYlo:InspectYhi,InspectZlo:InspectZhi,i,:));
+%nonzeros is used because the 5th dimension of pInEachBin is preallocated
+%with zeros. We don't want these values. 
+VelavgY(i) = mean(Vel(Inspect,3,i));
+end
 figure
 plot(1:nt,VelavgY,'-ro')
 xlabel('Timestep')
