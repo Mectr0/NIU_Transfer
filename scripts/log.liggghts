@@ -1,0 +1,237 @@
+LIGGGHTS (Version LIGGGHTS-PUBLIC 3.8.0, compiled 2021-08-11-09:38:37 by mectro, git commit 78f1a0277ef1f4f8ec5be8ad2f9715aa0ca5796c)
+#ultisphere
+
+atom_style	sphere
+atom_modify	map array sort 0 0
+boundary	m m m
+newton		off
+
+communicate	single vel yes
+
+#PUBLIC version only supports serial execution
+#processors	1 1 1
+
+units		si
+
+#region		reg block -0.3 0.3 -0.3 0.3 0. 0.5 units box
+region     reg block 0  0.6 0 .6 0. 0.5 units box
+
+create_box	1 reg
+Created orthogonal box = (0 0 0) to (0.6 0.6 0.5)
+  2 by 2 by 1 MPI processor grid
+
+neighbor	0.004 bin
+neigh_modify	delay 0
+
+#Material properties required for new pair styles
+
+fix 		m1 all property/global youngsModulus peratomtype 1.e7
+fix 		m2 all property/global poissonsRatio peratomtype 0.45
+fix 		m3 all property/global coefficientRestitution peratomtypepair 1 0.3
+fix 		m4 all property/global coefficientFriction peratomtypepair 1 0.5
+fix 		m5 all property/global characteristicVelocity scalar 2.
+
+#New pair style
+pair_style gran model hertz tangential history #Hertzian without cohesion
+pair_coeff	* *
+
+timestep	0.00001
+
+fix		gravi all gravity 9.81 vector 0.0 0.0 -1.0
+
+fix zwalls all wall/gran model hertz tangential history primitive type 1 zplane 0.0
+
+#distributions for insertion
+fix		pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 2500 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 1
+Finished calculating properties of template
+   mass = 1.353404e-03, radius of bounding sphere = 1.255275e-02, radius of equivalent sphere = 5.055913e-03
+   center of mass = 0.000000e+00, 0.000000e+00, 0.000000e+00
+   center of bounding sphere in body coords = 1.022506e-05, 2.763392e-07, -6.820591e-06
+   Principal moments of inertia_: 7.169240e-08, 7.168493e-08, 7.244664e-09
+     Eigenvector: 9.829750e-01, 1.837394e-01, 1.219249e-04
+     Eigenvector: -1.837393e-01, 9.829749e-01, -5.331589e-04
+     Eigenvector: -2.178114e-04, 5.016795e-04, 9.999999e-01
+     Inertia tensor: 7.169215e-08, 1.357167e-12, 1.403672e-11
+     Inertia tensor: 1.357167e-12, 7.168516e-08, -3.232818e-11
+     Inertia tensor: 1.403672e-11, -3.232818e-11, 7.244683e-09
+fix		pdd1 all particledistribution/discrete 39659 1 pts1 0.1 #15485867
+WARNING: particledistribution/discrete: sum of distribution weights != 1, normalizing distribution (../fix_particledistribution_discrete.cpp:135)
+
+#region and insertion
+#region		bc cylinder z 0.0 0.0 0.25 0.1 0.4 units box
+region     bc block 0.1  0.5 0.1 .5 0.1 0.2 units box
+region     delete block 0.1 0.5 0.1 .5 0 0.05 units box
+
+fix		ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random 		insert_every 200 overlapcheck yes region bc ntry_mc 10000 volumefraction_region 0.001
+#integrator for multisphere rigid bodies
+fix		integr all multisphere
+#output settings, include total thermal energy
+compute		1 all erotate/sphere
+compute bid all multisphere property id_multisphere
+compute quat all multisphere property quat
+compute pos  all multisphere property xcm
+
+compute energy all ke
+#fix		ts all check/timestep/gran 1000 0.1 0.1
+#thermo_style	custom step atoms ke c_1 f_ts[1] f_ts[2] vol
+#thermo		1000
+#thermo_modify	lost ignore norm no
+
+run 1
+Setting up run at Fri Nov 12 07:52:39 2021
+
+WARNING: Energy calculated for multisphere particles is currently not correct (../fix_multisphere.cpp:1312)
+INFO: Particle insertion ins: inserting every 200 steps
+Memory usage per processor = 12.7107 Mbytes
+    Step    Atoms         KinEng            CPU         Volume 
+       0        0              0              0           0.18 
+INFO: Particle insertion ins: inserted 30 particle templates (mass 4.060211e-02) at step 1
+ - a total of 30 particle templates (mass 4.060211e-02) inserted so far.
+       1     2100  4.8842353e-11      0.0103223           0.18 
+Loop time of 0.0103992 on 4 procs for 1 steps with 2100 atoms, finish time Fri Nov 12 07:52:39 2021
+
+
+Pair  time (%) = 5.6e-06 (0.0538504)
+Neigh time (%) = 0.0025591 (24.6087)
+Comm  time (%) = 0.000186775 (1.79606)
+Outpt time (%) = 3.325e-05 (0.319737)
+Other time (%) = 0.00761445 (73.2217)
+
+Nlocal:    525 ave 560 max 490 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    39.75 ave 117 max 0 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 1
+Dangerous builds = 0
+
+#dump		dmp all custom/vtk 200 post/multi_*.vtk id type mol x y z vx vy vz fx fy fz omegax omegay omegaz radius
+dump        orien all local 200 post/dump.pellet_orienrand c_bid c_quat[1] c_quat[2] c_quat[3] c_quat[4] c_pos[1] c_pos[2] c_pos[3]
+dump        pel all custom 200 post/dump.posrand.xyz id_multisphere xs ys zs
+#dump_modify pel sort id
+#dump       pos  all local 200 post/dump.pellet_pos c_pos[1] c_pos[2] c_pos[3]
+
+#insert particles
+run		40000 upto #every 200 "delete_atoms region delete"
+Setting up run at Fri Nov 12 07:52:39 2021
+
+WARNING: Energy calculated for multisphere particles is currently not correct (../fix_multisphere.cpp:1312)
+Memory usage per processor = 16.425 Mbytes
+    Step    Atoms         KinEng            CPU         Volume 
+       1     2100  4.8842353e-11              0           0.18 
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 2401
+ - a total of 31 particle templates (mass 4.195551e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 4201
+ - a total of 32 particle templates (mass 4.330891e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 5801
+ - a total of 33 particle templates (mass 4.466232e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 7001
+ - a total of 34 particle templates (mass 4.601572e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 8001
+ - a total of 35 particle templates (mass 4.736912e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 8401
+ - a total of 36 particle templates (mass 4.872253e-02) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 8801
+ - a total of 38 particle templates (mass 5.142933e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 9201
+ - a total of 39 particle templates (mass 5.278274e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 9601
+ - a total of 40 particle templates (mass 5.413614e-02) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 10001
+ - a total of 42 particle templates (mass 5.684295e-02) inserted so far.
+INFO: Particle insertion ins: inserted 3 particle templates (mass 4.060211e-03) at step 10201
+ - a total of 45 particle templates (mass 6.090316e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 10401
+ - a total of 46 particle templates (mass 6.225656e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 10601
+ - a total of 47 particle templates (mass 6.360996e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 10801
+ - a total of 48 particle templates (mass 6.496337e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 11001
+ - a total of 49 particle templates (mass 6.631677e-02) inserted so far.
+INFO: Particle insertion ins: inserted 4 particle templates (mass 5.413614e-03) at step 11401
+ - a total of 53 particle templates (mass 7.173039e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 12201
+ - a total of 54 particle templates (mass 7.308379e-02) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 13001
+ - a total of 56 particle templates (mass 7.579060e-02) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 13601
+ - a total of 58 particle templates (mass 7.849740e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 14001
+ - a total of 59 particle templates (mass 7.985081e-02) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 14201
+ - a total of 61 particle templates (mass 8.255761e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 14401
+ - a total of 62 particle templates (mass 8.391102e-02) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 14801
+ - a total of 64 particle templates (mass 8.661782e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 15801
+ - a total of 65 particle templates (mass 8.797123e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 16001
+ - a total of 66 particle templates (mass 8.932463e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 16201
+ - a total of 67 particle templates (mass 9.067804e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 17601
+ - a total of 68 particle templates (mass 9.203144e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 17801
+ - a total of 69 particle templates (mass 9.338484e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 18001
+ - a total of 70 particle templates (mass 9.473825e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 19001
+ - a total of 71 particle templates (mass 9.609165e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 19201
+ - a total of 72 particle templates (mass 9.744505e-02) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 19401
+ - a total of 73 particle templates (mass 9.879846e-02) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 20001
+ - a total of 75 particle templates (mass 1.015053e-01) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 20201
+ - a total of 76 particle templates (mass 1.028587e-01) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 20601
+ - a total of 77 particle templates (mass 1.042121e-01) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 21401
+ - a total of 79 particle templates (mass 1.069189e-01) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 21601
+ - a total of 80 particle templates (mass 1.082723e-01) inserted so far.
+INFO: Particle insertion ins: inserted 3 particle templates (mass 4.060211e-03) at step 21801
+ - a total of 83 particle templates (mass 1.123325e-01) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 22001
+ - a total of 84 particle templates (mass 1.136859e-01) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 22201
+ - a total of 86 particle templates (mass 1.163927e-01) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 22401
+ - a total of 88 particle templates (mass 1.190995e-01) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 22601
+ - a total of 89 particle templates (mass 1.204529e-01) inserted so far.
+INFO: Particle insertion ins: inserted 3 particle templates (mass 4.060211e-03) at step 22801
+ - a total of 92 particle templates (mass 1.245131e-01) inserted so far.
+INFO: Particle insertion ins: inserted 1 particle templates (mass 1.353404e-03) at step 23001
+ - a total of 93 particle templates (mass 1.258665e-01) inserted so far.
+INFO: Particle insertion ins: inserted 2 particle templates (mass 2.706807e-03) at step 23801
+ - a total of 95 particle templates (mass 1.285733e-01) inserted so far.
+WARNING: Forced restart written (../output.cpp:427)
+   24454     6650    0.038035244      3.8929318           0.18 
+Loop time of 3.89295 on 4 procs for 39999 steps with 6650 atoms, finish time Fri Nov 12 07:52:43 2021
+
+
+Pair  time (%) = 0.137101 (3.52177)
+Neigh time (%) = 0.613839 (15.768)
+Comm  time (%) = 0.177881 (4.56932)
+Outpt time (%) = 0.138612 (3.56059)
+Other time (%) = 2.82552 (72.5804)
+
+Nlocal:    1662.5 ave 2520 max 1162 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+Nghost:    117 ave 161 max 87 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+Neighs:    232.5 ave 410 max 52 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+
+Total # of neighbors = 930
+Ave neighs/atom = 0.13985
+Neighbor list builds = 206
+Dangerous builds = 0
