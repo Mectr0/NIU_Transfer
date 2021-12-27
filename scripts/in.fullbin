@@ -51,7 +51,7 @@ region      bc2 block 0.52 .95 .8 .95 0.015 0.115
 fix     pts1 all particletemplate/multisphere 15485867 atom_type 1 density constant 1399 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 1
 fix     pdd1 all particledistribution/discrete 39659 1 pts1 0.1
 fix     ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random &
-        insert_every once overlapcheck yes region bc ntry_mc 10000 particles_in_region 10
+        insert_every once overlapcheck yes region bc ntry_mc 10000 particles_in_region 10000
 #fix 		pts1 all particletemplate/sphere 15485863 atom_type 1 density constant 4560 radius constant 0.006
 #fix 		pdd1 all particledistribution/discrete 15485867 1 pts1 1.0
 #fix 		ins all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0 -2 0 & 
@@ -72,17 +72,17 @@ thermo_modify lost ignore norm no
 #run 1
 #dump files
 #dump 		dmp all custom/vtk 200 post/movingMesh_*.vtk id type type x y z vx vy vz radius
-#dump        dmp all custom/vtk 1000 post/multi_*.vtk id type mol x y z vx vy vz fx fy fz omegax omegay omegaz radius
-#dump		dumpstl all mesh/stl 1000 post/dump*.stl
+dump        dmp all custom/vtk 1000 post/multi_*.vtk id type mol x y z vx vy vz fx fy fz omegax omegay omegaz radius
+dump		dumpstl all mesh/stl 1000 post/dump*.stl
 #dump		lmpXYZ all custom 1000 post/dump.xyzvel id vx vy vz x y z
 #dump_modify     lmpXYZ sort id
 
-dump       orien all local 1000 post/dump.pellet_orienadd c_bid c_quat[1] c_quat[2] c_quat[3] c_quat[4] &
+dump       orien all local 1000 post/dump.pellet_test c_bid c_quat[1] c_quat[2] c_quat[3] c_quat[4] &
            c_pos[1] c_pos[2] c_pos[3] c_vel[1] c_vel[2] c_vel[3] 
 #dump_modify orien sort id
 
-dump        pel all custom 200 post/dump.posadd.xyz id_multisphere xs ys zs
-dump_modify pel sort id
+#dump        pel all custom 1000 post/dump.postest.xyz id_multisphere xs ys zs
+#dump_modify pel sort id
 
 #Use imported meshes as a granular wall/gran
 
@@ -104,14 +104,14 @@ unfix 	removable_wall
 fix     pts2 all particletemplate/multisphere 123457 atom_type 1 density constant 1399 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 2
 fix     pdd2 all particledistribution/discrete 39659 1 pts2 0.1
 fix     ins2  all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random &
-        insert_every 5000 overlapcheck yes region bc2 ntry_mc 10000 particles_in_region 10
+        insert_every 15000 overlapcheck yes region bc2 ntry_mc 10000 particles_in_region 1000
 
 fix 		movecad1 all move/mesh mesh belt1 linear 0.02653 0 0
 fix 		movecad2 all move/mesh mesh belt2 linear 0.02653 0 0
 fix 		movecad3 all move/mesh mesh belt3 linear 0.02653 0 0
 fix 		movecad4 all move/mesh mesh belt4 linear 0.02653 0 0
 
-run 40000
+run 115000
 
 #no particle insertion, movement
 unfix ins
