@@ -62,7 +62,7 @@ fix			belt2 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -2.032 
 fix			belt3 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -4.064 0 0.065
 fix			belt4 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -6.096 0 0.065
 fix			wall all mesh/surface file ../meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 1 $(0.0098+0.0254+7*0.012) 0.065
-
+#(0.0098+0.0254+7*0.012) points somehow to the opening size
 ###############################################################################
 
 
@@ -151,6 +151,7 @@ run 5000
 
 #particle insertion, movement
 unfix 	removable_wall
+
 #move cads/continuously and insert new pellets
 fix     pts2 all particletemplate/multisphere 123457 atom_type 1 density constant 1399 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 2
 fix     pdd2 all particledistribution/discrete 39659 1 pts2 0.1
