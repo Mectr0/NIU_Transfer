@@ -3,12 +3,12 @@ close all
 clear all
 clc
 load('PelletData.mat')
-fprintf('Number of bins in X: %d  Bin size (m): %f \n', nx, dx)
+fprintf('Number of bins in X: %d  Bin size (m): %f \n', nx, dx) %NOTE: These prints the amount of bins in each dimension
 fprintf('Number of bins in Y: %d  Bin size (m): %f \n', ny, dy)
 fprintf('Number of bins in Z: %d  Bin size (m): %f \n', nz, dz)
 
 InspectXlo = 1;     %INPUTS: These Values are inputs for what region the user wants to inspect
-InspectXhi = 19;
+InspectXhi = 19;    
 InspectYlo = 1;
 InspectYhi = 60;
 InspectZlo = 1;
