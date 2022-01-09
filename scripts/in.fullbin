@@ -61,8 +61,10 @@ fix			belt1 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move 0 0 0.0
 fix			belt2 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -2.032 0 0.065
 fix			belt3 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -4.064 0 0.065
 fix			belt4 all mesh/surface file ../meshes/conveyor1in3.stl type 1 move -6.096 0 0.065
-fix			wall all mesh/surface file ../meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 1 $(0.0098+0.0254+7*0.012) 0.065
+fix			wall all mesh/surface file ../meshes/wallreal.stl type 1 scale 0.001 rotate axis 1 0 0 angle 90 rotate axis 0 0 1 angle 90 move 1 $(0.0098+0.0254+0.0037) 0.065
 #(0.0098+0.0254+7*0.012) points somehow to the opening size
+# NOTE 0.0098m : Thickness of Conveyor belt
+#      0.0254m : Flight Height
 ###############################################################################
 
 
@@ -117,8 +119,8 @@ thermo_modify lost ignore norm no
 ###############################################################################
 #dump files
 #dump 		dmp all custom/vtk 200 post/movingMesh_*.vtk id type type x y z vx vy vz radius
-dump        dmp all custom/vtk 1000 post/multi_*.vtk id type mol x y z vx vy vz fx fy fz omegax omegay omegaz radius
-dump		dumpstl all mesh/stl 1000 post/dump*.stl
+#dump        dmp all custom/vtk 1000 post/multi_*.vtk id type mol x y z vx vy vz fx fy fz omegax omegay omegaz radius
+dump		dumpstl all mesh/stl 100000 post/dump*.stl
 #dump		lmpXYZ all custom 1000 post/dump.xyzvel id vx vy vz x y z
 #dump_modify     lmpXYZ sort id
 
@@ -156,14 +158,14 @@ unfix 	removable_wall
 fix     pts2 all particletemplate/multisphere 123457 atom_type 1 density constant 1399 nspheres 70 ntry 1000000 spheres file ../data/in.PelletV3 scale 0.001 type 2
 fix     pdd2 all particledistribution/discrete 39659 1 pts2 0.1
 fix     ins2  all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. orientation random &
-        insert_every 15000 overlapcheck yes region bc2 ntry_mc 10000 particles_in_region 1000
+        insert_every 50000 overlapcheck yes region bc2 ntry_mc 10000 particles_in_region 1000
 
 fix 		movecad1 all move/mesh mesh belt1 linear 0.02653 0 0
 fix 		movecad2 all move/mesh mesh belt2 linear 0.02653 0 0
 fix 		movecad3 all move/mesh mesh belt3 linear 0.02653 0 0
 fix 		movecad4 all move/mesh mesh belt4 linear 0.02653 0 0
 
-run 115000
+run 500000
 
 #no particle insertion, movement
 #unfix ins
