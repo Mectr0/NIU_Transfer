@@ -3,3 +3,5 @@ log.liggghts
 nohup.out
 PelletData.mat
 *.eps
+*.vtk
+*.stl
