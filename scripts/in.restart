@@ -1,8 +1,7 @@
-#Multisphere
-
-atom_style	sphere
-atom_modify	map array sort 0 0
-boundary	m m m
+#Multisphere Restart
+atom_modify map array sort 0 0
+read_restart restart.test.20000
+#boundary	m m m
 newton		off
 
 communicate	single vel yes
@@ -10,12 +9,11 @@ communicate	single vel yes
 #PUBLIC version only supports serial execution
 #processors	1 1 1 
 
-units		si
 
 #region		reg block -0.3 0.3 -0.3 0.3 0. 0.5 units box
-region     reg block 0  0.6 0 .6 0. 0.5 units box
+#region     reg block 0  0.6 0 .6 0. 0.5 units box
 
-create_box	1 reg
+#create_box	1 reg
 
 neighbor	0.004 bin
 neigh_modify	delay 0

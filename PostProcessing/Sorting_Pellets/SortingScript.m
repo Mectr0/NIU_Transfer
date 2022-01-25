@@ -13,7 +13,7 @@ dx = 4*delta;
 dy = 2.5*delta;
 dz = 2*delta;
 
-name = '../dump.pellet_test'; %Name of data file
+name = 'dump.pellet_test'; %Name of data file
 
 maxP = 10; %Max amount of pellets that could fit in a bin (for preallocation) May want to change for bigger bins
 n1 = 9615; %IMPORTANT: Number of pellets in the first timestep. Find this value in dump file.
