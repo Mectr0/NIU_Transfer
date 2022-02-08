@@ -1,6 +1,6 @@
 % Function Created by Connor Murphy
 % This function allows for addition of new pellets while a simulation runs.
-function [pInEachBin, COM, Vel, Quat,nx,ny,nz] = binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1)
+function [pInEachBin, COM, Vel, Quat,nx,ny,nz,FlowR] = binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1)
 fid = fopen(name,'r+');
 for zz = 1:5
         fgetl(fid); % The dump files comes with 11 lines of script before data starts
@@ -41,8 +41,9 @@ pInEachBin = zeros(nx,ny,nz,nt,maxP); %Preallocation: maxP might need to be larg
 COM = zeros(n1,4,nt); %COM: Center of mass [id, x, y, z]
 Vel = zeros(n1,4,nt); %Vel: Velocity components [id, x, y, z]
 Quat = zeros(n1,5,nt);%Quat: Quaternion values [id, q0, q1, q2, q3]
-
+FlowR = zeros(1,nt); %Number of pellet that have traveled accross the periodic boundary (for measuring mass flow rate);
 np = n1; % Initial number of pellets
+
 for it = 1:nt %Loop through each timestep of the dump file
 %----------------------------
     for zz = 1:3 % lines of script between each dumped timestep
@@ -74,26 +75,33 @@ end
    %Dump file: [id q0 q1 q2 q3 xx xy xz vx vy vz]
    tempcells = textscan(fid,'%f %f %f %f %f %f %f %f %f %f %f\n',np); %Read data from dump file
    tempmat = cell2mat(tempcells);
-   
    %Sort data into proper matrices
-   Quat(:,1:5,it) = tempmat(:,1:5); 
-   COM(:,1:4,it) = tempmat(:,[1,6:8]);
-   Vel(:,1:4,it) = tempmat(:,[1,9:11]);
+   Quat(1:np,1:5,it) = tempmat(:,1:5);  %IMPORTANT: changed these lines from Ex. Quat(:,1:5,it) because a pellet was lost in the simulation
+   COM(1:np,1:4,it) = tempmat(:,[1,6:8]);
+   Vel(1:np,1:4,it) = tempmat(:,[1,9:11]);
    
    %Sort each matrix by pellet id      
    Quat(:,:,it) = sortrows(Quat(:,:,it)); 
    COM(:,:,it) = sortrows(COM(:,:,it));
    Vel(:,:,it) = sortrows(Vel(:,:,it));
    for ip = 1:np
-      %Looping through pellets and finding which bin they belong to  
-      i = ceil((COM(ip,2,it)-Xlo)/dx); %NOTE: DOMAIN MUST ALL BE POSITIVE
-      j = ceil((COM(ip,3,it)-Ylo)/dy); 
-      k = ceil((COM(ip,4,it)-Zlo)/dz); 
-        
-      %bID4p(ip,it,:) = [i,j,k];
-      counter(i,j,k,it) = counter(i,j,k,it)+1; %Add a number to corresponding counter index to add pellets to the same bin
-      pInEachBin(i,j,k,it,counter(i,j,k,it)) = COM(ip,1,it);
-        
+      if COM(ip,2,it) < Xlo 
+          FlowR(1,it) = FlowR(1,it)+1;
+      elseif COM(ip,4,it)< Zlo || COM(ip,4,it) > Zhi
+      else
+          %Looping through pellets and finding which bin they belong to  
+          i = ceil((COM(ip,2,it)-Xlo)/dx); %NOTE: DOMAIN MUST ALL BE POSITIVE
+          j = ceil((COM(ip,3,it)-Ylo)/dy); 
+          k = ceil((COM(ip,4,it)-Zlo)/dz); 
+
+          %bID4p(ip,it,:) = [i,j,k];
+          %n = [i j k it]
+          counter(i,j,k,it) = counter(i,j,k,it)+1; %Add a number to corresponding counter index to add pellets to the same bin
+          if counter(i,j,k,it) > maxP
+              error('maxP value is too small')
+          end            
+          pInEachBin(i,j,k,it,counter(i,j,k,it)) = COM(ip,1,it);
+      end
    end
 end
 fclose(fid);

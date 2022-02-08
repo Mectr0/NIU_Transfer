@@ -4,21 +4,21 @@ clc
 clear all
 close all
 
-dumpfreq = 1000; %IMPORTANT: determined by liggghts script
-nsteps = 121000;  %IMPORTANT: determined by liggghts script
+dumpfreq = 500; %IMPORTANT: determined by liggghts script
+nsteps = 380000;  %IMPORTANT: determined by liggghts script
 nt = nsteps/dumpfreq; %Number of timesteps
-delta = 0.006562; %Pellet Diameter from InertiaToRadius.m
+delta = 0.006562; %Pellet Diameter calculated in InertiaToRadius.m
 
 dx = 4*delta;
 dy = 2.5*delta;
 dz = 2*delta;
 
-name = 'dump.pellet_test'; %Name of data file
+name = 'dump.pellet_1_5Dtest'; %Name of data file
 
-maxP = 10; %Max amount of pellets that could fit in a bin (for preallocation) May want to change for bigger bins
-n1 = 9615; %IMPORTANT: Number of pellets in the first timestep. Find this value in dump file.
+maxP = 10; %Max amount of pellets that could fit in a bin (for preallocation) May want to increase for bigger bins
+n1 = 10886; %IMPORTANT: Number of pellets in the first timestep. Find this value in dump file. Ex: ITEM: Number of Entries : Desired Value
 
-[pInEachBin,COM,Vel, Quat, nx, ny, nz]= binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1); 
+[pInEachBin,COM,Vel, Quat, nx, ny, nz, FlowR]= binPelletAnalysisV2(name,nt,dx,dy,dz,maxP,n1); 
 %Returns:
 %pInEachBin: Pellet IDs telling which pellet is in which bin at a timestep
 %pInEachBin: [xindex,yindex,zindex,timestep,pelletids]
@@ -30,7 +30,7 @@ n1 = 9615; %IMPORTANT: Number of pellets in the first timestep. Find this value 
 %Quat: [Pellet,idq0q1q2q3(5values),timestep]
 %nx,ny,nz: Number of bins in each direction
 
-save('../Data_Plotting/PelletData.mat') %Saving data to the Data_Plotting Directory
+save('../Data_Plotting/PelletData.mat','-v7.3') %Saving data to the Data_Plotting Directory. (version 7.3 for large files)
 %NOTE: If you change the name of PelletData.mat, you have to add that name
 %to the .gitignore file so it doesn't get pushed to GitHub
 
