@@ -123,3 +123,17 @@ ylabel('average Y-velocity (m/s)')
 
 %(nx,ny,nz,nt,maxP)
 
+%% Plotting Flow Rate
+Time = [0:timestep*dumpfreq:timestep*dumpfreq*(length(FlowR)-1)];
+for i = 1:length(FlowR)
+    if i == 1
+        FlowRate(i) = 0;
+    else
+        FlowRate(i) = (FlowR(i)-FlowR(i-1))/(timestep*dumpfreq);
+    end
+end
+figure 
+plot(Time(1:300),FlowRate(1:300),'-b*')
+xlabel('Time (s)')
+ylabel('FlowRate (Pellets/s)')
+pbaspect([4 2 1]);

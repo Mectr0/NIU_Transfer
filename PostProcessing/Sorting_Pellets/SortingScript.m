@@ -8,6 +8,7 @@ dumpfreq = 500; %IMPORTANT: determined by liggghts script
 nsteps = 380000;  %IMPORTANT: determined by liggghts script
 nt = nsteps/dumpfreq; %Number of timesteps
 delta = 0.006562; %Pellet Diameter calculated in InertiaToRadius.m
+timestep = 0.0001; %Seconds
 
 dx = 4*delta;
 dy = 2.5*delta;
