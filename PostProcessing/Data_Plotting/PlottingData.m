@@ -2,7 +2,7 @@
 close all 
 clear all
 clc
-load('PelletData.mat')
+load('PelletData1_5.mat')
 fprintf('Number of bins in X: %d  Bin size (m): %f \n', nx, dx) %NOTE: These prints the amount of bins in each dimension
 fprintf('Number of bins in Y: %d  Bin size (m): %f \n', ny, dy)
 fprintf('Number of bins in Z: %d  Bin size (m): %f \n', nz, dz)
@@ -124,16 +124,36 @@ ylabel('average Y-velocity (m/s)')
 %(nx,ny,nz,nt,maxP)
 
 %% Plotting Flow Rate
+close all
+load('../Sorting_Pellets/PelletRate1_5.mat')
+load('../Sorting_Pellets/PelletRate2_0.mat')
+load('../Sorting_Pellets/PelletRate3_0.mat')
 Time = [0:timestep*dumpfreq:timestep*dumpfreq*(length(FlowR)-1)];
-for i = 1:length(FlowR)
-    if i == 1
-        FlowRate(i) = 0;
-    else
-        FlowRate(i) = (FlowR(i)-FlowR(i-1))/(timestep*dumpfreq);
-    end
-end
+% for i = 1:length(Time)
+%     if i == 1
+%         FlowRate(i) = 0;
+%     else
+%         FlowRate(i) = (FlowR(i*4))-FlowR(4*(i-1));%/(timestep*dumpfreq);
+%     end
+% end
 figure 
-plot(Time(1:300),FlowRate(1:300),'-b*')
+hold on
+plot(Time,FlowR1_5,'b*')
+plot(Time,FlowR2_0,'gs')
+plot(Time,FlowR3_0,'ko')
 xlabel('Time (s)')
-ylabel('FlowRate (Pellets/s)')
-pbaspect([4 2 1]);
+ylabel('Pellet Number Accross Boundary') %Flow Rate (Pellets/Second)')
+legend('1.5 D','2 D','3 D');
+P1_5 = polyfit(Time, FlowR1_5, 1);
+P2_0 = polyfit(Time, FlowR2_0, 1);
+P3_0 = polyfit(Time, FlowR3_0, 1);
+x1_5 = @(x) P1_5(1)*x + P1_5(2);
+x2_0 = @(x) P2_0(1)*x + P2_0(2);
+x3_0 = @(x) P3_0(1)*x + P3_0(2);
+figure
+hold on
+plot(Time, x1_5(Time))
+plot(Time, x2_0(Time))
+plot(Time, x3_0(Time))
+% axis([0 40 -50 200])
+% pbaspect([4 2 1]);
