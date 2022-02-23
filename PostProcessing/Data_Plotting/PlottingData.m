@@ -128,6 +128,9 @@ close all
 load('../Sorting_Pellets/PelletRate1_5.mat')
 load('../Sorting_Pellets/PelletRate2_0.mat')
 load('../Sorting_Pellets/PelletRate3_0.mat')
+load('../Sorting_Pellets/PelletRate5_0.mat')
+load('../Sorting_Pellets/PelletRate8_0.mat')
+load('../Sorting_Pellets/PelletRate13_0.mat')
 Time = [0:timestep*dumpfreq:timestep*dumpfreq*(length(FlowR)-1)];
 % for i = 1:length(Time)
 %     if i == 1
@@ -141,19 +144,68 @@ hold on
 plot(Time,FlowR1_5,'b*')
 plot(Time,FlowR2_0,'gs')
 plot(Time,FlowR3_0,'ko')
+plot(Time,FlowR5_0,'r*')
+plot(Time,FlowR8_0,'bs')
+plot(Time,FlowR13_0,'ms')
 xlabel('Time (s)')
-ylabel('Pellet Number Accross Boundary') %Flow Rate (Pellets/Second)')
-legend('1.5 D','2 D','3 D');
-P1_5 = polyfit(Time, FlowR1_5, 1);
-P2_0 = polyfit(Time, FlowR2_0, 1);
-P3_0 = polyfit(Time, FlowR3_0, 1);
+ylabel('Pellet Number Across Boundary') %Flow Rate (Pellets/Second)')
+%legend('1.5 D','2 D','3 D','5 D');
+P1_5 = polyfit(Time(60:760), FlowR1_5(60:760), 1);
+P2_0 = polyfit(Time(60:760), FlowR2_0(60:760), 1);
+P3_0 = polyfit(Time(60:760), FlowR3_0(60:760), 1);
+P5_0 = polyfit(Time(60:760), FlowR5_0(60:760), 1);
+P8_0 = polyfit(Time(60:760), FlowR8_0(60:760), 1);
+P13_0 = polyfit(Time(60:760), FlowR13_0(60:760), 1);
+% P1_5 = polyfit(Time, FlowR1_5, 1);
+% P2_0 = polyfit(Time, FlowR2_0, 1);
+% P3_0 = polyfit(Time, FlowR3_0, 1);
+% P5_0 = polyfit(Time, FlowR5_0, 1);
+
 x1_5 = @(x) P1_5(1)*x + P1_5(2);
 x2_0 = @(x) P2_0(1)*x + P2_0(2);
 x3_0 = @(x) P3_0(1)*x + P3_0(2);
-figure
-hold on
-plot(Time, x1_5(Time))
-plot(Time, x2_0(Time))
-plot(Time, x3_0(Time))
+x5_0 = @(x) P5_0(1)*x + P5_0(2);
+x8_0 = @(x) P8_0(1)*x + P8_0(2);
+x13_0 = @(x) P13_0(1)*x + P13_0(2);
+% figure
+% hold on
+plot(Time, x1_5(Time),'LineWidth',2)
+plot(Time, x2_0(Time),'LineWidth',2)
+plot(Time, x3_0(Time),'LineWidth',2)
+plot(Time, x5_0(Time),'LineWidth',2)
+plot(Time, x8_0(Time),'LineWidth',2)
+plot(Time, x13_0(Time),'LineWidth',2)
+
+
 % axis([0 40 -50 200])
 % pbaspect([4 2 1]);
+fprintf('1.5 D: %f*x + %f\n', P1_5(1), P1_5(2));
+fprintf('2.0 D: %f*x + %f\n', P2_0(1), P2_0(2));
+fprintf('3.0 D: %f*x + %f\n', P3_0(1), P3_0(2));
+fprintf('5.0 D: %f*x + %f\n', P5_0(1), P5_0(2));
+fprintf('8.0 D: %f*x + %f\n', P8_0(1), P8_0(2));
+fprintf('13.0 D: %f*x + %f\n', P13_0(1), P13_0(2));
+
+%% Plotting Variation
+
+for i = 1:length(FlowR13_0)
+    FlowVar13(i) = FlowR13_0(i)-x13_0(Time(i));
+    FlowVar8(i) = FlowR8_0(i)-x8_0(Time(i));
+    FlowVar5(i) = FlowR5_0(i)-x5_0(Time(i));
+    FlowVar3(i) = FlowR3_0(i)-x3_0(Time(i));
+    FlowVar2(i) = FlowR2_0(i)-x2_0(Time(i));
+    FlowVar1_5(i) = FlowR1_5(i)-x1_5(Time(i));
+end
+figure 
+hold on
+% plot(Time(60:end),FlowVar1_5(60:760),'-r*')
+%plot(Time(60:end),FlowVar2(60:760),'-bo')
+plot(Time(60:end),FlowVar3(60:760),'-ks')
+% plot(Time(60:end),FlowVar5(60:760),'-c*')
+% plot(Time(60:end),FlowVar8(60:760),'-y*')
+% plot(Time(60:end),FlowVar13(60:760),'-g*')
+xlabel('Time')
+ylabel('Pellet Value - Curve Fit Value')
+title('2 Diameter Exit Height')
+%plot(Time,FlowVar13,'-r*')
+

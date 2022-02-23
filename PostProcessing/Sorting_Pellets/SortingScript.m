@@ -14,7 +14,7 @@ dx = 4*delta;
 dy = 2.5*delta;
 dz = 2*delta;
 
-name = 'dump.pellet_3_0D'; %Name of data file
+name = 'dump.pellet_13_0D'; %Name of data file
 
 maxP = 10; %Max amount of pellets that could fit in a bin (for preallocation) May want to increase for bigger bins
 n1 = 12572; %IMPORTANT: Number of pellets in the first timestep. Find this value in dump file. Ex: ITEM: Number of Entries : Desired Value
@@ -35,8 +35,8 @@ n1 = 12572; %IMPORTANT: Number of pellets in the first timestep. Find this value
 %NOTE: If you change the name of PelletData.mat, you have to add that name
 %to the .gitignore file so it doesn't get pushed to GitHub
 
-% FlowR3_0 = FlowR;
-%save('PelletRate3_0.mat', 'FlowR3_0');
+% FlowR13_0 = FlowR;
+%save('PelletRate13_0.mat', 'FlowR13_0');
 
 
 
