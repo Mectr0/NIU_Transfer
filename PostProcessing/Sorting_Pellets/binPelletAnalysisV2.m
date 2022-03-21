@@ -8,7 +8,7 @@ end
 %IMPORTANT: X and Z Bounds are hard-coded right now. These correspond to
 %the size of the simulation domain
 Xlo = 0.5;%fscanf(fid,'%g',1);
-Xhi =   2;%fscanf(fid,'%g',1);
+Xhi =   1.02;%fscanf(fid,'%g',1);
 fscanf(fid,'%g',1);
 fscanf(fid,'%g',1);
 Ylo = fscanf(fid,'%g',1);
