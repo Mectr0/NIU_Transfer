@@ -2,7 +2,7 @@
 close all 
 clear all
 clc
-load('PelletData13_0.mat')
+load('PelletData13_0F.mat')
 fprintf('Number of bins in X: %d  Bin size (m): %f \n', nx, dx) %NOTE: These prints the amount of bins in each dimension
 fprintf('Number of bins in Y: %d  Bin size (m): %f \n', ny, dy)
 fprintf('Number of bins in Z: %d  Bin size (m): %f \n', nz, dz)
@@ -44,117 +44,85 @@ O3 = InspectCenter-Inspectdim/2;
 plotcube(Inspectdim,O3,0.6,[0 1 0]);
 plot3(InspectCenter(1),InspectCenter(2),InspectCenter(3),'*k')
 
-
-%% Plotting Quaternion Data
-figure
-x = [1; 0; 0];
-y = [0; 1; 0];
-z = [0; 0; 1]; %Orientation of pellet template
-ConveyVec = [1 ; 0 ; 0];
-PlotFigTimeStep = 60;
-for i = 1:nt
-Inspect = nonzeros(pInEachBin(InspectXlo:InspectXhi,InspectYlo:InspectYhi,InspectZlo:InspectZhi,i,:));
-%nonzeros is used because the 5th dimension of pInEachBin is preallocated
-%with zeros. We don't want these values. 
-Q0 = Quat(Inspect,2,i);
-Q1 = Quat(Inspect,3,i);
-Q2 = Quat(Inspect,4,i);
-Q3 = Quat(Inspect,5,i);
-OrienVecx = zeros(length(Inspect),3);
-OrienVecy = zeros(length(Inspect),3);
-OrienVecz = zeros(length(Inspect),3);
-Alpha = zeros(length(Inspect),1);
-Beta = zeros(length(Inspect),1);
-Gamma = zeros(length(Inspect),1);
-for j = 1:length(Inspect)
-    q0 = Q0(j);
-    q1 = Q1(j);
-    q2 = Q2(j);
-    q3 = Q3(j);
-    Ansx = [x(1)*(q0^2+q1^2-q2^2-q3^2)+2*x(2)*(q1*q2-q0*q3)+2*x(3)*((q0*q2)+(q1*q3));   %Finding new orientation for each pellets local axes
-           2*x(1)*(q0*q3+q1*q2) + x(2)*(q0^2-q1^2+q2^2-q3^2)+ 2*x(3)*((q2*q3)-(q0*q1));
-           2*x(1)*(q1*q3-q0*q2) + 2*x(2)*(q0*q1 + q2*q3) + x(3)*(q0^2-q1^2-q2^2+q3^2)];
-    Ansy = [y(1)*(q0^2+q1^2-q2^2-q3^2)+2*y(2)*(q1*q2-q0*q3)+2*y(3)*((q0*q2)+(q1*q3));
-           2*y(1)*(q0*q3+q1*q2) + y(2)*(q0^2-q1^2+q2^2-q3^2)+ 2*y(3)*((q2*q3)-(q0*q1));
-           2*y(1)*(q1*q3-q0*q2) + 2*y(2)*(q0*q1 + q2*q3) + y(3)*(q0^2-q1^2-q2^2+q3^2)];
-    Ansz = [z(1)*(q0^2+q1^2-q2^2-q3^2)+2*z(2)*(q1*q2-q0*q3)+2*z(3)*((q0*q2)+(q1*q3));
-           2*z(1)*(q0*q3+q1*q2) + z(2)*(q0^2-q1^2+q2^2-q3^2)+ 2*z(3)*((q2*q3)-(q0*q1));
-           2*z(1)*(q1*q3-q0*q2) + 2*z(2)*(q0*q1 + q2*q3) + z(3)*(q0^2-q1^2-q2^2+q3^2)];
-    OrienVecx(j,1)= Ansx(1,1);
-    OrienVecx(j,2)= Ansx(2,1);
-    OrienVecx(j,3)= Ansx(3,1);
-    
-    OrienVecy(j,1)= Ansy(1,1);
-    OrienVecy(j,2)= Ansy(2,1);
-    OrienVecy(j,3)= Ansy(3,1);
-    
-    OrienVecz(j,1)= Ansz(1,1);
-    OrienVecz(j,2)= Ansz(2,1);
-    OrienVecz(j,3)= Ansz(3,1);
-    
-    Alpha(j,1) = acosd((ConveyVec(1)*OrienVecx(j,1)+ ConveyVec(2)*OrienVecx(j,2) + ConveyVec(3)*OrienVecx(j,3)));
-        
-    Beta(j,1) = acosd((ConveyVec(1)*OrienVecy(j,1)+ ConveyVec(2)*OrienVecy(j,2) + ConveyVec(3)*OrienVecy(j,3)));
-        
-    Gamma(j,1) = acosd((ConveyVec(1)*OrienVecz(j,1)+ ConveyVec(2)*OrienVecz(j,2) + ConveyVec(3)*OrienVecz(j,3)));
-    
-end
-histogram(real(Gamma));
-% histogram(Q1); %Change which quaternion you want
-title('Timestep',i)
-xlabel('Angle Gamma (degrees)')
-ylabel('Number of Pellets')
-pause(0.5)
-if i == PlotFigTimeStep
-saveas(gca,'TestingEPS','epsc')
-end
-end
-%% Quaternion calculations part 2
+%% Quaternion calculations 
 
 ConveyVec = [1 ; 0 ; 0];
 x = [1; 0; 0];
 y = [0; 1; 0];
 z = [0; 0; 1]; %Orientation of pellet template
 GammaMean = zeros(InspectXhi,1);
-it = 760; %The timestep we are interested in
-iy = 10; %Highest bin in y direction we want to look at. (dy*10 = 26 pellet diameters)
-for j = 1:InspectXhi
-    Inspect = nonzeros(pInEachBin(j,1:iy,1:nz,it,:));
-    %nonzeros is used because the 5th dimension of pInEachBin is preallocated
-    %with zeros. We don't want these values.
-    Gamma = zeros(length(Inspect),1);
-    for k = 1:length(Inspect)
-        idx = find(Quat(:,1,it)== Inspect(k));
-        q0 = Quat(idx,2,it);
-        q1 = Quat(idx,3,it);
-        q2 = Quat(idx,4,it);
-        q3 = Quat(idx,5,it);
-        Ansz = [z(1)*(q0^2+q1^2-q2^2-q3^2)+2*z(2)*(q1*q2-q0*q3)+2*z(3)*((q0*q2)+(q1*q3));
-                2*z(1)*(q0*q3+q1*q2) + z(2)*(q0^2-q1^2+q2^2-q3^2)+ 2*z(3)*((q2*q3)-(q0*q1));
-                2*z(1)*(q1*q3-q0*q2) + 2*z(2)*(q0*q1 + q2*q3) + z(3)*(q0^2-q1^2-q2^2+q3^2)];
-        OrienVecz(k,1)= Ansz(1,1);
-        OrienVecz(k,2)= Ansz(2,1);
-        OrienVecz(k,3)= Ansz(3,1);
-        Gamma(k,1) = acosd((ConveyVec(1)*OrienVecz(k,1)+ ConveyVec(2)*OrienVecz(k,2) + ConveyVec(3)*OrienVecz(k,3)));
-        if Inspect(k) ~= idx
-            fprintf('WARNING: Pellet ID does not match row number (Quat Calculation p2)')
-            %Just in case the sorted rows in Quat dont have id values that
-            %match up to the row number. Shouldn't be a problem, just
-            %checking.
-        end
+it = 10; %The timestep we are interested in
+iy = 7; %Highest bin in y direction we want to look at. (dy*10 = 26 pellet diameters)
+%Hists = cell(nx,1);
+for i = 1:nt
+    for j = 1:InspectXhi
+        Inspect = nonzeros(pInEachBin(j,1:iy,1:nz,i,:));
+        %nonzeros is used because the 5th dimension of pInEachBin is preallocated
+        %with zeros. We don't want these values.
+        Gamma = zeros(length(Inspect),1);
+        for k = 1:length(Inspect)
+            idx = find(Quat(:,1,i)== Inspect(k));
+            q0 = Quat(idx,2,i);
+            q1 = Quat(idx,3,i);
+            q2 = Quat(idx,4,i);
+            q3 = Quat(idx,5,i);
+            Ansz = [z(1)*(q0^2+q1^2-q2^2-q3^2)+2*z(2)*(q1*q2-q0*q3)+2*z(3)*((q0*q2)+(q1*q3));
+                    2*z(1)*(q0*q3+q1*q2) + z(2)*(q0^2-q1^2+q2^2-q3^2)+ 2*z(3)*((q2*q3)-(q0*q1));
+                    2*z(1)*(q1*q3-q0*q2) + 2*z(2)*(q0*q1 + q2*q3) + z(3)*(q0^2-q1^2-q2^2+q3^2)];
+            OrienVecz(k,1)= Ansz(1,1);
+            OrienVecz(k,2)= Ansz(2,1);
+            OrienVecz(k,3)= Ansz(3,1);
+            Gamma(k,1) = acosd((ConveyVec(1)*OrienVecz(k,1)+ ConveyVec(2)*OrienVecz(k,2) + ConveyVec(3)*OrienVecz(k,3)));
+            if Gamma(k,1) < 0
+                fprint('NEGATIVE ANGLE')
+            end
+            if Gamma(k,1) > 90
+                Gamma(k,1) = 180 - Gamma(k,1);
+            end
+            if Inspect(k) ~= idx
+                fprintf('WARNING: Pellet ID does not match row number (Quat Calculation p2)')
+                %Just in case the sorted rows in Quat dont have id values that
+                %match up to the row number. Shouldn't be a problem, just
+                %checking.
+            end
 
+        end
+%         if i == it
+%             Hists(j,1) = {Gamma};
+%         end
+        Gammastd(j,i) = std(Gamma(:,1));
+        GammaMean(j,i) = mean(Gamma(:,1));
     end
-    Gammastd(j) = std(Gamma(:,1));
-    GammaMean(j) = mean(Gamma(:,1));
-end
+end 
 figure
-Spacing = [0:dx:(dx*nx)-dx];
-GammaMeanPlot = GammaMean(:,1);
-%plot(Spacing, GammaMeanPlot, 'k-o')
-errorbar(Spacing,GammaMeanPlot, Gammastd, 'k-o')
-xlabel = ('Discretized position along hopper (m)')
-ylabel = ('Angle between length of pellet and belt motion')
-title('Timestep:',it)
+colormap('jet')
+%surf(real(GammaMean));
+contourf(real(GammaMean(1:nx,:)), [0:2:90])
+caxis([22 80])
+colorbar
+shading INTERP
+
+%------------------Use this to overlay belt speed on contour
+hold on
+BeltSpeed = 0.02653; %m/s  
+BeltTime = [300, 500];
+BeltPos = @(n) ((BeltSpeed*timestep*dumpfreq)/dx)*n - 7;
+plot(BeltTime,BeltPos(BeltTime), '-r', 'LineWidth',4);
+%------------------
+xlabel('Timestep'), ylabel('Spatial Bin in X'), zlabel('Angle (degrees)')
+title('Average Angle relative to belt motion for 13.0 D')
+%view(90, 90);
+
+min(min(real(GammaMean(1:nx,:))))%checking to see if my colorbar range is good
+max(max(real(GammaMean(1:nx,:))))
+% figure
+% GammaMeanSelect = Gammastd(:,[30 200 550 760]);
+% h = bar(GammaMeanSelect, 'Barwidth' , 1.5);
+% set(h, {'DisplayName'}, {'Timestep 30','Timestep 200','Timestep 550', 'Timestep 760'}')
+% legend()
+% xlabel('Bin Number in X')
+% ylabel('Pellet Angle Standard Deviation (Degrees)')
+% title('Exit Height : 1.5 D')
 
 %% Plotting Average Y velocity
 for i = 1:nt
@@ -233,7 +201,7 @@ title(leg,'Exit Height in Pellet Diameter (D)')
 
 axis([0 40 -100 6500])
 
-%saveas(gca,'FlowRateCombine','epsc')
+%saveas(gca,'FlowRVariation.eps','epsc')
 
 % pbaspect([4 2 1]);
 fprintf('1.5 D: %f*x + %f\n', P1_5(1), P1_5(2));
@@ -260,14 +228,15 @@ plot(Time(60:end),FlowVar8(60:760),'-.','LineWidth', 2, 'color','#0000FF')
 plot(Time(60:end),FlowVar5(60:760),':','LineWidth', 2, 'color','#77AC30')
 plot(Time(60:end),FlowVar3(60:760),'-.','LineWidth', 2, 'color','#0072BD')
 plot(Time(60:end),FlowVar2(60:760),'-','LineWidth', 2, 'color','#000000')
-plot(Time(60:end),FlowVar1_5(60:760),'--','LineWidth', 2, 'color','#A2142F')
-
+plot(Time(60:end),FlowVar1_5(60:760),'-','LineWidth', 2, 'color','#A2142F')
+yline(0,'-r', 'LineWidth', 3)
 xlabel('Time (S)')
 ylabel('Pellet Value - Curve Fit Value')
 %title('2 Diameter Exit Height')
 leg = legend('13 D','8 D','5 D','3 D','2 D','1.5 D')
 title(leg,'Exit Height in Pellet Diameter (D)')
 axis([0 40 -110 60])
+%saveas(gca,'FlowRVariation.eps','epsc')
 %plot(Time,FlowVar13,'-r*')
 
 %Variance Histograms
