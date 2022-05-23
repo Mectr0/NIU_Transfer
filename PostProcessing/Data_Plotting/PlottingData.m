@@ -112,6 +112,7 @@ plot(BeltTime,BeltPos(BeltTime), '-r', 'LineWidth',4);
 xlabel('Timestep'), ylabel('Spatial Bin in X'), zlabel('Angle (degrees)')
 title('Average Angle relative to belt motion for 13.0 D')
 %view(90, 90);
+%saveas(gca,'STD.eps','epsc')
 
 min(min(real(GammaMean(1:nx,:))))%checking to see if my colorbar range is good
 max(max(real(GammaMean(1:nx,:))))
@@ -189,7 +190,7 @@ x2_0 = @(x) P2_0(1)*x + P2_0(2);
 % plot(Time, x2_0(Time),'LineWidth',2)
 
 %subplot(2,2,1), plot(Time,FlowR1_5,'b*')
-plot(Time,FlowR1_5,'--','LineWidth', 2, 'color','#A2142F')
+plot(Time,FlowR1_5,'-','LineWidth', 2, 'color','#A2142F')
 P1_5 = polyfit(Time(60:760), FlowR1_5(60:760), 1);
 x1_5 = @(x) P1_5(1)*x + P1_5(2);
 % plot(Time, x1_5(Time),'LineWidth',2)
@@ -230,13 +231,13 @@ plot(Time(60:end),FlowVar3(60:760),'-.','LineWidth', 2, 'color','#0072BD')
 plot(Time(60:end),FlowVar2(60:760),'-','LineWidth', 2, 'color','#000000')
 plot(Time(60:end),FlowVar1_5(60:760),'-','LineWidth', 2, 'color','#A2142F')
 yline(0,'-r', 'LineWidth', 3)
-xlabel('Time (S)')
+xlabel('Time (s)')
 ylabel('Pellet Value - Curve Fit Value')
 %title('2 Diameter Exit Height')
 leg = legend('13 D','8 D','5 D','3 D','2 D','1.5 D')
 title(leg,'Exit Height in Pellet Diameter (D)')
 axis([0 40 -110 60])
-%saveas(gca,'FlowRVariation.eps','epsc')
+saveas(gca,'FlowRVariation.eps','epsc')
 %plot(Time,FlowVar13,'-r*')
 
 %Variance Histograms
@@ -311,20 +312,20 @@ SimList = [1.5,2,3,5,8,13];
 figure
 plot(SimList,Sigma, ':bv','MarkerFaceColor', 'b')
 grid on
-xlabel('Exit Height (D)')
-ylabel('Standard Deviation of Flowrate Variance')
+xlabel('Exit Height (D)','Fontsize',14)
+ylabel('Standard Deviation','Fontsize',14)
 
 figure 
 plot(SimList,Skew, ':ro','MarkerFaceColor', 'r')
 grid on
-xlabel('Exit Height (D)')
-ylabel('Skewness of Flowrate Variance Distribution')
+xlabel('Exit Height (D)','Fontsize',14)
+ylabel('Skewness ','Fontsize',14)
 
 figure
 plot(SimList,Kurt, ':ks','MarkerFaceColor', 'k')
 grid on
-xlabel('Exit Height (D)')
-ylabel('Kurtosis of Flowrate Variance Distribution')
+xlabel('Exit Height (D)','Fontsize',14)
+ylabel('Kurtosis ','Fontsize',14)
 
 
 

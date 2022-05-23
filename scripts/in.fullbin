@@ -132,7 +132,7 @@ dump		dumpstl all mesh/stl 2000 post/dump*.stl  #Dupms all stl meshes as .stl fi
 #dump	lmpXYZ all custom 1000 post/dump.xyzvel id vx vy vz x y z
 #dump_modify lmpXYZ sort id
 
-dump       orien all local 500 post/dump.pellet_2_0D c_bid c_quat[1] c_quat[2] c_quat[3] c_quat[4] &
+arraydump       orien all local 500 post/dump.pellet_2_0D c_bid c_quat[1] c_quat[2] c_quat[3] c_quat[4] &
            c_pos[1] c_pos[2] c_pos[3] c_vel[1] c_vel[2] c_vel[3] #This is a custom command that creates a file with pellets sorted as : id q0 q1 q2 q3 x y z vx vy vz
 #dump_modify orien sort id
 
