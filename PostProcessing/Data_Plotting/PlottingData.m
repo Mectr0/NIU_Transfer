@@ -2,11 +2,12 @@
 close all 
 clear all
 clc
-load('PelletData13_0F.mat')
+load('PelletData2_0F.mat')
 fprintf('Number of bins in X: %d  Bin size (m): %f \n', nx, dx) %NOTE: These prints the amount of bins in each dimension
 fprintf('Number of bins in Y: %d  Bin size (m): %f \n', ny, dy)
 fprintf('Number of bins in Z: %d  Bin size (m): %f \n', nz, dz)
 
+PelletMass =0.000294; %kg
 InspectXlo = 1;     %INPUTS: These Values are inputs for what region the user wants to inspect
 InspectXhi = nx;    
 InspectYlo = 1;
@@ -54,9 +55,15 @@ GammaMean = zeros(InspectXhi,1);
 it = 10; %The timestep we are interested in
 iy = 7; %Highest bin in y direction we want to look at. (dy*10 = 26 pellet diameters)
 %Hists = cell(nx,1);
+%************************************
+%NOTE:(dy = 0.0195m)
+%Height to top of flight: 0.0352m  Inspecting two bins (1:2): 0.039 m  
+%Inspecting above flights (3:10) : Region(0.039 to 0.195 m)
+%Inspecting top flights (11:22) : Region(0.195 to 0.429m) 
+%************************************
 for i = 1:nt
     for j = 1:InspectXhi
-        Inspect = nonzeros(pInEachBin(j,1:iy,1:nz,i,:));
+        Inspect = nonzeros(pInEachBin(j,5:6,1:nz,i,:));
         %nonzeros is used because the 5th dimension of pInEachBin is preallocated
         %with zeros. We don't want these values.
         Gamma = zeros(length(Inspect),1);
@@ -94,10 +101,13 @@ for i = 1:nt
         GammaMean(j,i) = mean(Gamma(:,1));
     end
 end 
+close all
 figure
 colormap('jet')
 %surf(real(GammaMean));
-contourf(real(GammaMean(1:nx,:)), [0:2:90])
+Time = [0:timestep*dumpfreq:timestep*dumpfreq*(length(FlowR)-1)];
+Pos = [0:dx:0.52];
+contourf(Time,Pos,real(GammaMean(1:nx,:)), [0:2:90],'edgecolor','none')%, 'edgecolor','none')
 caxis([22 80])
 colorbar
 shading INTERP
@@ -105,14 +115,14 @@ shading INTERP
 %------------------Use this to overlay belt speed on contour
 hold on
 BeltSpeed = 0.02653; %m/s  
-BeltTime = [300, 500];
-BeltPos = @(n) ((BeltSpeed*timestep*dumpfreq)/dx)*n - 7;
+BeltTime = [300*timestep*dumpfreq, 500*timestep*dumpfreq];
+BeltPos = @(n) BeltSpeed*n - 0.2;
 plot(BeltTime,BeltPos(BeltTime), '-r', 'LineWidth',4);
 %------------------
-xlabel('Timestep'), ylabel('Spatial Bin in X'), zlabel('Angle (degrees)')
-title('Average Angle relative to belt motion for 13.0 D')
-%view(90, 90);
-%saveas(gca,'STD.eps','epsc')
+xlabel('Time (s)','Fontsize',16), ylabel('X Position (m)','Fontsize',16);
+%title('Average Angle relative to belt motion for 5.0 D')
+view(90, 90);
+%saveas(gca,'Contour5D5to6.eps','epsc')
 
 min(min(real(GammaMean(1:nx,:))))%checking to see if my colorbar range is good
 max(max(real(GammaMean(1:nx,:))))
@@ -159,6 +169,12 @@ figure
 hold on
 box on
 
+yyaxis left
+ylabel('Expelled Pellets') %Flow Rate (Pellets/Second)')
+xlabel('Time (s)')
+leg = legend('13 D','8 D','5 D','3 D','2 D','1.5 D');
+title(leg,'Exit Height in Pellet Diameter (D)')
+axis([0 40 -100 6500])
 %subplot(2,2,4),plot(Time,FlowR13_0,'ms')
 plot(Time,FlowR13_0,'--','LineWidth', 2, 'color','#FF00FF')
 P13_0 = polyfit(Time(60:760), FlowR13_0(60:760), 1);
@@ -169,7 +185,7 @@ x13_0 = @(x) P13_0(1)*x + P13_0(2);
 plot(Time,FlowR8_0,'-.','LineWidth', 2, 'color','#0000FF')
 P8_0 = polyfit(Time(60:760), FlowR8_0(60:760), 1);
 x8_0 = @(x) P8_0(1)*x + P8_0(2);
-% plot(Time, x8_0(Time),'LineWidth',2)
+%plot(Time, x8_0(Time),'LineWidth',2)
 
 %subplot(2,2,4),plot(Time,FlowR5_0,'r*')
 plot(Time,FlowR5_0,':','LineWidth', 2, 'color','#77AC30')
@@ -195,14 +211,22 @@ P1_5 = polyfit(Time(60:760), FlowR1_5(60:760), 1);
 x1_5 = @(x) P1_5(1)*x + P1_5(2);
 % plot(Time, x1_5(Time),'LineWidth',2)
 
-xlabel('Time (s)')
-ylabel('Expelled Pellets') %Flow Rate (Pellets/Second)')
+ylabel('Expelled Pellets','Fontsize',16) %Flow Rate (Pellets/Second)')
+xlabel('Time (s)','Fontsize',16)
 leg = legend('13 D','8 D','5 D','3 D','2 D','1.5 D');
 title(leg,'Exit Height in Pellet Diameter (D)')
+%axis([0 40 -100 8600])
+axis([0 7 -100 1450])
 
-axis([0 40 -100 6500])
+yyaxis right
+%axis([0 40 -100*PelletMass 8600*PelletMass])
+axis([0 7 -100*PelletMass 1450*PelletMass])
+ylabel('Mass Expelled (kg)','Fontsize',16)
 
-%saveas(gca,'FlowRVariation.eps','epsc')
+
+FlowRates = [P1_5(1) P2_0(1) P3_0(1) P5_0(1) P8_0(1) P13_0(1)];
+
+%saveas(gca,'FlowRateCombineZoom.eps','epsc')
 
 % pbaspect([4 2 1]);
 fprintf('1.5 D: %f*x + %f\n', P1_5(1), P1_5(2));
@@ -223,6 +247,7 @@ for i = 1:length(FlowR13_0)
     FlowVar1_5(i) = FlowR1_5(i)-x1_5(Time(i));
 end
 figure 
+box on
 hold on
 plot(Time(60:end),FlowVar13(60:760),'--','LineWidth', 2, 'color','#FF00FF')
 plot(Time(60:end),FlowVar8(60:760),'-.','LineWidth', 2, 'color','#0000FF')
@@ -231,40 +256,51 @@ plot(Time(60:end),FlowVar3(60:760),'-.','LineWidth', 2, 'color','#0072BD')
 plot(Time(60:end),FlowVar2(60:760),'-','LineWidth', 2, 'color','#000000')
 plot(Time(60:end),FlowVar1_5(60:760),'-','LineWidth', 2, 'color','#A2142F')
 yline(0,'-r', 'LineWidth', 3)
-xlabel('Time (s)')
-ylabel('Pellet Value - Curve Fit Value')
+xlabel('Time (s)','Fontsize',16)
+ylabel('Pellet Value - Curve Fit Value','Fontsize',16)
 %title('2 Diameter Exit Height')
-leg = legend('13 D','8 D','5 D','3 D','2 D','1.5 D')
+leg = legend('13 D','8 D','5 D','3 D','2 D','1.5 D','Fontsize',1)
 title(leg,'Exit Height in Pellet Diameter (D)')
 axis([0 40 -110 60])
 saveas(gca,'FlowRVariation.eps','epsc')
-%plot(Time,FlowVar13,'-r*')
+
 
 %Variance Histograms
-figure
-subplot(3,2,1),histogram(FlowVar13(60:760),40)
-title('Variance for 13 D')
-subplot(3,2,2),histogram(FlowVar8(60:760),40)
-title('Variance for 8 D')
-subplot(3,2,3),histogram(FlowVar5(60:760),40)
-title('Variance for 5 D')
-subplot(3,2,4),histogram(FlowVar3(60:760),40)
-title('Variance for 3 D')
-subplot(3,2,5),histogram(FlowVar2(60:760),40)
-title('Variance for 2 D')
-subplot(3,2,6),histogram(FlowVar1_5(60:760),40)
-title('Variance for 1.5 D')
+% figure
+% subplot(3,2,1),histogram(FlowVar13(60:760),40)
+% title('Variance for 13 D')
+% subplot(3,2,2),histogram(FlowVar8(60:760),40)
+% title('Variance for 8 D')
+% subplot(3,2,3),histogram(FlowVar5(60:760),40)
+% title('Variance for 5 D')
+% subplot(3,2,4),histogram(FlowVar3(60:760),40)
+% title('Variance for 3 D')
+% subplot(3,2,5),histogram(FlowVar2(60:760),40)
+% title('Variance for 2 D')
+% subplot(3,2,6),histogram(FlowVar1_5(60:760),40)
+% title('Variance for 1.5 D')
 
-%Fourier Transform
 figure
-t_end = 37.95-2.95; %2.95 because the first value is 0
+
+t_end = 37.95-2.95; %2.95 because the first value is 0 (instead of using a value of 3)
 df = 1/t_end; %frequency increment
 fs = 1/(timestep*dumpfreq); %Sampling frequency
-ft13 = fft(FlowVar13(61:760));
-ft13abs = sqrt(imag(ft13).^2 + real(ft13).^2);
+ft5 = fft(FlowVar8(61:760));
+ft5abs = sqrt(imag(ft5).^2 + real(ft5).^2)/(760-60);
 f = linspace(0,fs,fs/df);
-stem(f,ft13abs);
+STEM = stem(f,ft5abs,'LineWidth', 2,'color','#FF00FF');
+set(gca,'fontsize',16)
+xlabel('Frequency (Hz)','Fontsize',16)
+ylabel('Pellet Flow Variance','Fontsize',16)
 
+hold on
+for i = 1:9
+xline(0.3264*i,'--r','linewidth', 1.5);
+end
+xlim([-0.1 , 3])
+ylim([0 , 14])
+%breakyaxis([6 13])
+%saveas(gca,'13Dstem.eps','epsc')
 %% Standard Deviation, Skewness, and Kurtosis
 close all
 
@@ -309,23 +345,71 @@ Kurt(6)=kurtosis(FlowVar13(60:760));
 
 SimList = [1.5,2,3,5,8,13];
 
+Error = figure;
+%plot(SimList,FlowRates, 'bv','MarkerFaceColor', 'b')
+Error = errorbar(SimList,FlowRates,Sigma,'bv','MarkerFaceColor', 'b')
+
+grid on
+yyaxis left
+xlabel('Exit Height (D)','Fontsize',16)
+ylabel('Pellet Flow Rate (pellets/s)','Fontsize',16)
+set(gca, 'XTick',SimList) 
+labelpoints(SimList,FlowRates,round(Sigma),'S', 1.25, 1)
+axis([1 13.5 0 275]);
+
+yyaxis right
+axis([1 13.5 0*PelletMass 275*PelletMass]);
+ylabel('Mass Flow Rate (kg/s)','Fontsize',16)
+% figure 
+% plot(SimList,Skew, ':ro','MarkerFaceColor', 'r')
+% grid on
+% xlabel('Exit Height (D)','Fontsize',14)
+% ylabel('Skewness ','Fontsize',14)
+% 
+% figure
+% plot(SimList,Kurt, ':ks','MarkerFaceColor', 'k')
+% grid on
+% xlabel('Exit Height (D)','Fontsize',14)
+% ylabel('Kurtosis ','Fontsize',14)
+
+%% Velocity Quiver Plot
+close all
+
+time = 560;
+vxmean = zeros(InspectYhi, InspectXhi);
+vymean = zeros(InspectYhi, InspectXhi);
+for j = 1:InspectYhi
+    for i = 1:InspectXhi
+        Inspect = nonzeros(pInEachBin(i,j,1:nz,time,:));
+        %nonzeros is used because the 5th dimension of pInEachBin is preallocated
+        %with zeros. We don't want these values.
+        vx = zeros(length(Inspect),1);
+        vy = zeros(length(Inspect),1);
+        for k = 1:length(Inspect)
+            idx = find(Vel(:,1,time)== Inspect(k));
+            vx(k,1) = Vel(idx,2,time);
+            vy(k,1) = Vel(idx,3,time);
+            if Inspect(k) ~= idx
+                fprintf('WARNING: Pellet ID does not match row number (Quat Calculation p2)')
+                %Just in case the sorted rows in Quat dont have id values that
+                %match up to the row number. Shouldn't be a problem, just
+                %checking.
+            end
+
+        end
+        vxmean(j,i) = mean(vx);
+        vymean(j,i) = mean(vy);
+    end
+end
 figure
-plot(SimList,Sigma, ':bv','MarkerFaceColor', 'b')
-grid on
-xlabel('Exit Height (D)','Fontsize',14)
-ylabel('Standard Deviation','Fontsize',14)
-
-figure 
-plot(SimList,Skew, ':ro','MarkerFaceColor', 'r')
-grid on
-xlabel('Exit Height (D)','Fontsize',14)
-ylabel('Skewness ','Fontsize',14)
-
-figure
-plot(SimList,Kurt, ':ks','MarkerFaceColor', 'k')
-grid on
-xlabel('Exit Height (D)','Fontsize',14)
-ylabel('Kurtosis ','Fontsize',14)
-
-
+scale = 4;
+quiver([dx/2:dx:nx*dx],[dy/2:dy:ny*dy], vxmean*scale, vymean*scale, 'Autoscale', 'off');
+hold on
+plot([.5,.5], [(0.0098+0.0254+2*0.00738),0.5],'-','LineWidth', 2, 'color','#A2142F');
+quiver(0.4,0.03,(.02653)*scale,0*scale,'LineWidth', 4, 'color','#A2142F', 'Autoscale', 'off')
+xlabel('X Location (m)','Fontsize',16)
+ylabel('Y Location (m)','Fontsize',16)
+axis equal
+axis([0 0.6 0 0.4])
+%saveas(gca,'2DQuiver.eps','epsc')
 
