@@ -1,4 +1,6 @@
 %% Moment of Inertia Script
+%This script was used to figure out the size of a simulated pellet made out
+%of spheres to have the same moment of inertia of a sample, physical pellet
 clear all
 close all
 clc

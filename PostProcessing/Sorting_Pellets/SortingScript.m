@@ -1,7 +1,7 @@
 %% SORTING
 % Script Created by Connor Murphy
 %***********************************************************
-%This script reads data from a custom dump file produced by in.fullbin
+%This script reads data from a custom dump file produced by /scripts/in.fullbin
 %(can use other scripts) that gives data in the following format: 
 %id, quaternions, position, velocity: id q0 q1 q2 q3 xx xy xz vx vy vz
 %It uses the pellet ids and positions for each timestep to create a 5D
