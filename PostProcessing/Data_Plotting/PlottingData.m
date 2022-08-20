@@ -29,7 +29,7 @@ clear all
 clc
 load('PelletData5_0F.mat') %Loading the .mat file: contains sorted data and other important properties
 
-fprintf('Number of bins in X: %d  Bin size (m): %f \n', nx, dx) %NOTE: These prints the amount of bins in each dimension
+fprintf('Number of bins in X: %d  Bin size (m): %f \n', nx, dx) %NOTE: These print the amount of bins in each dimension
 fprintf('Number of bins in Y: %d  Bin size (m): %f \n', ny, dy)
 fprintf('Number of bins in Z: %d  Bin size (m): %f \n', nz, dz)
 
@@ -45,6 +45,8 @@ InspectZhi = nz;
 %This is code that should show the user what part of the domain box he will
 %be inspecting
 %NOTE: Section 2 needs section 1 to be run first
+
+%REQUIREMENTS: Needs Section 1 to be run beforehand
 
 figure
 hold on
@@ -81,6 +83,8 @@ plot3(InspectCenter(1),InspectCenter(2),InspectCenter(3),'*k')
 % motion of the conveyor belt as a function of time and X position
 %NOTE: Section 3 needs section 1 to be run first
 %************************************
+
+%REQUIREMENTS: Needs Section 1 to be run beforehand
 
 ConveyVec = [1 ; 0 ; 0]; %Conveyor moves in the X-direction
 x = [1; 0; 0];
@@ -177,6 +181,9 @@ max(max(real(GammaMean(1:nx,:))))
 
 
 %% 4) Plotting Average Y velocity
+
+%REQUIREMENTS: Needs Section 1 to be run beforehand
+
 for i = 1:nt
 Inspect = nonzeros(pInEachBin(InspectXlo:InspectXhi,InspectYlo:InspectYhi,InspectZlo:InspectZhi,i,:));
 %nonzeros is used because the 5th dimension of pInEachBin is preallocated
@@ -191,6 +198,9 @@ ylabel('average Y-velocity (m/s)')
 %(nx,ny,nz,nt,maxP)
 
 %% 5) Plotting Flow Rate
+
+%REQUIREMENTS: Needs Section 1 to be run beforehand
+
 close all
 load('../Sorting_Pellets/PelletRate1_5.mat')
 load('../Sorting_Pellets/PelletRate2_0.mat')
@@ -305,6 +315,9 @@ fprintf('13.0 D: %f*x + %f\n', P13_0(1), P13_0(2));
 
 %% 6) Plotting Variation
 close all
+
+%REQUIREMENTS: Needs Sections 1 and 5 to be run beforehand
+
 for i = 1:length(FlowR13_0)
     FlowVar13(i) = FlowR13_0(i)-x13_0(Time(i));
     FlowVar8(i) = FlowR8_0(i)-x8_0(Time(i));
@@ -355,6 +368,8 @@ ylim([0 , 14])
 %saveas(gca,'STD.eps','epsc')
 %% 7) Standard Deviation, Skewness, and Kurtosis
 close all
+
+%REQUIREMENTS: Needs Sections 1, 5 and 6 to be run beforehand
 
 % Sigma1_5 = std(FlowVar1_5(60:760)); %Sample std (normalized by n-1)
 % Sigma2 = std(FlowVar2(60:760));
@@ -440,6 +455,8 @@ ylabel('Mass Flow Rate (kg/s)','Fontsize',16)
 
 %% 8) Velocity Quiver Plot
 close all
+
+%REQUIREMENTS: Needs Section 1 to be run beforehand
 
 time = 560;
 vxmean = zeros(InspectYhi, InspectXhi);

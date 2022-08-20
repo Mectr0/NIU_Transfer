@@ -49,8 +49,8 @@ delta = 0.0075; %Rough template pellet diameter
 len = 0.025;
 timestep = 0.0001; %Seconds
 
-dx = 1*len;
-dy = 2.6*delta;
+dx = 1*len;     %These three lines define the resolution of the discretized domain in each direction
+dy = 2.6*delta; %AKA: The size of each bin
 dz = 17.44*delta;
 
 name = 'dump.pellet_8_0DF'; %Name of data file
@@ -78,7 +78,9 @@ n1 = 12572; %IMPORTANT: Number of pellets in the first timestep. Find this value
 %to the .gitignore file so it doesn't get pushed to GitHub
 
 % FlowR5_0 = FlowR;
-%save('PelletRate5_0.mat', 'FlowR5_0');
+%save('PelletRate5_0.mat', 'FlowR5_0'); IMPORTANT: Use this command to
+%create a .mat file that will be used in
+%PostProcessing/Data_Plotting/PlottingData.m
 
 
 
